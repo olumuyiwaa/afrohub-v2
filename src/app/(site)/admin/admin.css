@@ -92,11 +92,11 @@
     }
 
     .menu-dropdown-badge-active {
-        @apply bg-brand-100 dark:bg-brand-500/20;
+        @apply bg-brand-100 dark:bg-brand-500/[0.20];
     }
 
     .menu-dropdown-badge-inactive {
-        @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/15 dark:group-hover:bg-brand-500/20;
+        @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/[0.15] dark:group-hover:bg-brand-500/[0.20];
     }
 
     /* Chrome, Safari and Opera */
@@ -109,7 +109,7 @@
     }
 
     .custom-scrollbar::-webkit-scrollbar {
-        @apply size-1.5;
+        @apply w-1.5 h-1.5;
     }
 
     .custom-scrollbar::-webkit-scrollbar-track {

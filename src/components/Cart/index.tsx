@@ -19,7 +19,7 @@ const Cart = () => {
       {/* <!-- ===== Breadcrumb Section End ===== --> */}
       {cartItems.length > 0 ? (
         <section className="overflow-hidden py-20 bg-gray-2">
-          <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
+          <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-0">
             <div className="flex flex-wrap items-center justify-between gap-5 mb-7.5">
               <h2 className="font-medium text-dark text-2xl">Your Cart</h2>
               <button className="text-blue">Clear Shopping Cart</button>
@@ -103,7 +103,7 @@ const Cart = () => {
             <p className="pb-6">Your cart is empty!</p>
 
             <Link
-              href="/shop-with-sidebar"
+              href="/shop"
               className="w-96 mx-auto flex justify-center font-medium text-white bg-dark py-[13px] px-6 rounded-md ease-out duration-200 hover:bg-opacity-95"
             >
               Continue Shopping

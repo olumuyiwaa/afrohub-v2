@@ -28,17 +28,17 @@ const navItems: NavItem[] = [
   {
     icon: GridIcon,
     name: "Dashboard",
-    path: "/",
+    path: "/admin",
   },
   {
     icon: CalenderIcon,
     name: "Calendar",
-    path: "/calendar",
+    path: "/admin/calendar",
   },
   {
     icon: UserCircleIcon,
     name: "User Profile",
-    path: "/profile",
+    path: "/admin/profile",
   },
   {
     name: "Forms",

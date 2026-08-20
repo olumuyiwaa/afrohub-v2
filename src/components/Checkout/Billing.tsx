@@ -2,7 +2,7 @@ import React from "react";
 
 const Billing = () => {
   return (
-    <div className="mt-9">
+    <div>
       <h2 className="font-medium text-dark text-xl sm:text-2xl mb-5.5">
         Billing details
       </h2>

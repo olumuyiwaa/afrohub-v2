@@ -13,19 +13,19 @@ const Checkout = () => {
     <>
       <Breadcrumb title={"Checkout"} pages={["checkout"]} />
       <section className="overflow-hidden py-20 bg-gray-2">
-        <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
+        <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-0">
           <form>
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11">
               {/* <!-- checkout left --> */}
-              <div className="lg:max-w-[670px] w-full">
+              <div className="lg:max-w-[920px] w-full">
                 {/* <!-- login box --> */}
-                <Login />
+                {/*<Login />*/}
 
                 {/* <!-- billing details --> */}
                 <Billing />
 
                 {/* <!-- address box two --> */}
-                <Shipping />
+                {/*<Shipping />*/}
 
                 {/* <!-- others note box --> */}
                 <div className="bg-white shadow-1 rounded-[10px] p-4 sm:p-8.5 mt-7.5">
@@ -126,7 +126,7 @@ const Checkout = () => {
                 <Coupon />
 
                 {/* <!-- shipping box --> */}
-                <ShippingMethod />
+                {/*<ShippingMethod />*/}
 
                 {/* <!-- payment box --> */}
                 <PaymentMethod />

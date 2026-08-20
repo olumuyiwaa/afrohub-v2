@@ -15,16 +15,16 @@ const BlogDetailsWithSidebar = () => {
         pages={["blog details sidebar"]}
       />
       <section className="overflow-hidden py-20 bg-gray-2">
-        <div className="max-w-[1170px] w-full mx-auto px-4 sm:px-8 xl:px-0">
+        <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-0">
           <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-12.5">
             {/* <!-- blog details --> */}
-            <div className="lg:max-w-[750px] w-full">
+            <div className="lg:max-w-[1200px] w-full">
               <div className="rounded-[10px] overflow-hidden mb-7.5">
                 <Image
                   className="rounded-[10px]"
                   src="/images/blog/blog-details-01.jpg"
                   alt="details"
-                  width={750}
+                  width={1200}
                   height={477}
                 />
               </div>

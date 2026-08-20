@@ -4,7 +4,7 @@ import Image from "next/image";
 const Newsletter = () => {
   return (
     <section className="overflow-hidden">
-      <div className="max-w-[1170px] mx-auto px-4 sm:px-8 xl:px-0">
+      <div className="store-container mx-auto px-4 sm:px-8 xl:px-0">
         <div className="relative z-1 overflow-hidden rounded-xl">
           {/* <!-- bg shapes --> */}
           <Image

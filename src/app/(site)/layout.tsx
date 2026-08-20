@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import "../css/euclid-circular-a-font.css";
 import "../css/style.css";
 import Header from "../../components/Header";
@@ -17,22 +18,27 @@ import ScrollToTop from "@/components/Common/ScrollToTop";
 import PreLoader from "@/components/Common/PreLoader";
 
 export default function RootLayout({
-  children,
-}: {
+                                     children,
+                                   }: {
   children: React.ReactNode;
 }) {
   const [loading, setLoading] = useState<boolean>(true);
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith("/admin");
 
   useEffect(() => {
     setTimeout(() => setLoading(false), 1000);
   }, []);
 
   return (
-    <html lang="en" suppressHydrationWarning={true}>
+      <html lang="en" suppressHydrationWarning={true}>
       <body>
-        {loading ? (
+      {loading ? (
           <PreLoader />
-        ) : (
+      ) : isAdmin ? (
+          // Admin: no storefront header/footer/modals
+          <>{children}</>
+      ) : (
           <>
             <ReduxProvider>
               <CartModalProvider>
@@ -40,7 +46,6 @@ export default function RootLayout({
                   <PreviewSliderProvider>
                     <Header />
                     {children}
-
                     <QuickViewModal />
                     <CartSidebarModal />
                     <PreviewSliderModal />
@@ -51,8 +56,8 @@ export default function RootLayout({
             <ScrollToTop />
             <Footer />
           </>
-        )}
+      )}
       </body>
-    </html>
+      </html>
   );
 }
