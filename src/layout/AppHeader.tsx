@@ -4,6 +4,7 @@ import NotificationDropdown from "@/components/Header/NotificationDropdown";
 import UserDropdown from "@/components/Header/UserDropdown";
 import { useSidebar } from "@/app/context/SidebarContext";
 import Image from "next/image";
+import Logo from "@/components/saas/Logo";
 import Link from "next/link";
 import React, { useState ,useEffect,useRef} from "react";
 
@@ -83,22 +84,7 @@ const AppHeader: React.FC = () => {
             {/* Cross Icon */}
           </button>
 
-          <Link href="/" className="lg:hidden">
-            <Image
-              width={154}
-              height={32}
-              className="dark:hidden"
-              src="./images/logo/logo.svg"
-              alt="Logo"
-            />
-            <Image
-              width={154}
-              height={32}
-              className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
-              alt="Logo"
-            />
-          </Link>
+          <Link href="/" className="lg:hidden"><Logo /></Link>
 
           <button
             onClick={toggleApplicationMenu}

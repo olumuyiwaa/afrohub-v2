@@ -1,0 +1,101 @@
+// In-memory "database" shared by the mock services, mirrored to localStorage so
+// changes (a new sign-up, a suspended business, an edited product, ...) survive
+// page reloads like a real backend would. "Reset demo data" clears it.
+// When the real backend exists, delete this file and point the services at it.
+
+import * as seed from "@/mock/seed";
+import type { AuthUser } from "@/types/saas";
+
+const STORAGE_KEY = "afrohub:db:v1";
+const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
+
+const fresh = () => ({
+  plans: clone(seed.plans),
+  businesses: clone(seed.businesses),
+  subscriptions: clone(seed.subscriptions),
+  invoices: clone(seed.invoices),
+  products: clone(seed.products),
+  orders: clone(seed.orders),
+  customers: clone(seed.customers),
+  team: clone(seed.team),
+  users: clone(seed.demoAccounts) as AuthUser[],
+});
+
+type DB = ReturnType<typeof fresh>;
+
+function load(): DB {
+  if (typeof window === "undefined") return fresh();
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // basic shape check so a corrupted/old blob falls back to seed data
+      if (parsed && Array.isArray(parsed.businesses) && Array.isArray(parsed.plans) && Array.isArray(parsed.users)) {
+        return parsed as DB;
+      }
+    }
+  } catch {
+    /* storage blocked or corrupt — use seed data */
+  }
+  return fresh();
+}
+
+let saveQueued = false;
+function scheduleSave() {
+  if (typeof window === "undefined" || saveQueued) return;
+  saveQueued = true;
+  queueMicrotask(() => {
+    saveQueued = false;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(raw));
+    } catch {
+      /* quota exceeded or blocked — keep working in memory */
+    }
+  });
+}
+
+// Deep proxy: any write anywhere in the tree (push, splice, assignment, ...)
+// schedules a single save, so service code stays plain mutation.
+const proxies = new WeakMap<object, object>();
+function observe<T extends object>(target: T): T {
+  const cached = proxies.get(target);
+  if (cached) return cached as T;
+  const proxy = new Proxy(target, {
+    get(t, key, receiver) {
+      const v = Reflect.get(t, key, receiver);
+      return v && typeof v === "object" ? observe(v as object) : v;
+    },
+    set(t, key, value, receiver) {
+      const ok = Reflect.set(t, key, value, receiver);
+      scheduleSave();
+      return ok;
+    },
+    deleteProperty(t, key) {
+      const ok = Reflect.deleteProperty(t, key);
+      scheduleSave();
+      return ok;
+    },
+  });
+  proxies.set(target, proxy);
+  return proxy;
+}
+
+const raw: DB = load();
+export const db: DB = observe(raw);
+
+/** Wipe all changes and go back to the seeded demo data. */
+export function resetDemoData() {
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem("afrohub:user");
+  } catch {
+    /* ignore */
+  }
+}
+
+export const delay = (ms = 350) => new Promise<void>((r) => setTimeout(r, ms));
+
+let counter = 1000;
+export const uid = (prefix: string) => `${prefix}_${Date.now().toString(36)}${(counter++).toString(36)}`;
+
+export class ServiceError extends Error {}

@@ -1,16 +1,76 @@
-import Home from "@/components/Home";
-import { Metadata } from "next";
+import type { Metadata } from "next";
+import Link from "next/link";
+import MarketingShell from "@/components/saas/MarketingShell";
+import PricingCards from "@/components/saas/PricingCards";
 
 export const metadata: Metadata = {
-  title: "NextCommerce | Nextjs E-commerce template",
-  description: "This is Home for NextCommerce Template",
-  // other metadata
+  title: "AfroHub — Launch your online business",
+  description: "AfroHub gives small businesses a storefront, order management and customer tools on one simple subscription.",
 };
 
-export default function HomePage() {
+const features = [
+  { t: "Your own storefront", d: "A branded online shop live in minutes — no developer needed." },
+  { t: "Orders & inventory", d: "Track every order from pending to delivered and keep stock accurate." },
+  { t: "Customer insights", d: "See who your best customers are and what they love to buy." },
+  { t: "Team access", d: "Invite managers and staff with the right level of access." },
+  { t: "Clear analytics", d: "Revenue, top products and trends in one simple dashboard." },
+  { t: "Simple subscription", d: "One predictable monthly price. Upgrade or cancel anytime." },
+];
+
+const steps = [
+  { n: "1", t: "Create your account", d: "Tell us about your business and pick a plan. 14 days free." },
+  { n: "2", t: "Add your products", d: "Upload your catalogue, set prices and stock levels." },
+  { n: "3", t: "Start selling", d: "Share your store link and manage orders from your dashboard." },
+];
+
+export default function LandingPage() {
   return (
-    <>
-      <Home />
-    </>
+    <MarketingShell>
+      <section className="bg-brand-950 text-white">
+        <div className="mx-auto max-w-6xl px-5 py-20 text-center sm:py-28">
+          <p className="mx-auto w-fit rounded-full bg-white/10 px-4 py-1.5 text-sm text-brand-100">Built for African small businesses</p>
+          <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-semibold leading-tight sm:text-6xl">Everything you need to sell online, in one place.</h1>
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-brand-100/80">Launch a storefront, manage orders and grow your customer base with a single simple subscription.</p>
+          <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link href="/get-started" className="rounded-lg bg-white px-6 py-3.5 text-sm font-semibold text-brand-700 hover:bg-brand-50">Start your free trial</Link>
+            <Link href="/admin/login" className="rounded-lg px-6 py-3.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/30 hover:bg-white/10">See the demo dashboard</Link>
+          </div>
+        </div>
+      </section>
+
+      <section id="features" className="mx-auto max-w-6xl px-5 py-20">
+        <h2 className="text-center text-3xl font-semibold">Tools that grow with you</h2>
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {features.map((f) => (
+            <div key={f.t} className="rounded-2xl border border-gray-200 p-6">
+              <div className="mb-4 h-10 w-10 rounded-xl bg-brand-50" />
+              <h3 className="font-semibold">{f.t}</h3>
+              <p className="mt-2 text-sm text-gray-500">{f.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="how" className="bg-gray-50">
+        <div className="mx-auto max-w-6xl px-5 py-20">
+          <h2 className="text-center text-3xl font-semibold">Up and running in three steps</h2>
+          <div className="mt-12 grid gap-8 md:grid-cols-3">
+            {steps.map((s) => (
+              <div key={s.n}>
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 font-semibold text-white">{s.n}</span>
+                <h3 className="mt-4 font-semibold">{s.t}</h3>
+                <p className="mt-2 text-sm text-gray-500">{s.d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="pricing" className="mx-auto max-w-6xl px-5 py-20 text-center">
+        <h2 className="text-3xl font-semibold">Simple, transparent pricing</h2>
+        <p className="mt-3 text-gray-500">Every plan starts with a 14-day free trial. No card required.</p>
+        <div className="mt-10"><PricingCards /></div>
+      </section>
+    </MarketingShell>
   );
 }

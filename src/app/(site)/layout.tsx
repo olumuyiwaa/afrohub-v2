@@ -25,18 +25,22 @@ export default function RootLayout({
   const [loading, setLoading] = useState<boolean>(true);
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
+  // Marketing pages bring their own header/footer and skip the storefront shell.
+  const isMarketing = pathname === "/" || pathname?.startsWith("/get-started");
+  const skipShell = isAdmin || isMarketing;
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
+    const t = setTimeout(() => setLoading(false), skipShell ? 0 : 1000);
+    return () => clearTimeout(t);
+  }, [skipShell]);
 
   return (
       <html lang="en" suppressHydrationWarning={true}>
       <body>
       {loading ? (
           <PreLoader />
-      ) : isAdmin ? (
-          // Admin: no storefront header/footer/modals
+      ) : skipShell ? (
+          // Admin + marketing: no storefront header/footer/modals
           <>{children}</>
       ) : (
           <>
