@@ -1,9 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { Bricolage_Grotesque } from "next/font/google";
 import "../css/euclid-circular-a-font.css";
 import "../css/style.css";
 import Header from "../../components/Header";
+import StoreHeader from "@/components/Store/StoreHeader";
 import Footer from "../../components/Footer";
 
 import { ModalProvider } from "../context/QuickViewModalContext";
@@ -17,6 +19,8 @@ import PreviewSliderModal from "@/components/Common/PreviewSlider";
 import { StoreProvider } from "../context/StoreContext";
 import ScrollToTop from "@/components/Common/ScrollToTop";
 import PreLoader from "@/components/Common/PreLoader";
+
+const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 
 export default function RootLayout({
                                      children,
@@ -39,7 +43,7 @@ export default function RootLayout({
 
   return (
       <html lang="en" suppressHydrationWarning={true}>
-      <body>
+      <body className={display.variable}>
       {loading ? (
           <PreLoader />
       ) : skipShell ? (
@@ -52,7 +56,7 @@ export default function RootLayout({
               <CartModalProvider>
                 <ModalProvider>
                   <PreviewSliderProvider>
-                    <Header />
+                    {storeSlug ? <StoreHeader /> : <Header />}
                     {children}
                     <QuickViewModal />
                     <CartSidebarModal />

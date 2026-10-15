@@ -6,6 +6,7 @@ import type { Product } from "@/types/product";
 import { getStoreBySlug, listStoreProducts, STORE_UNAVAILABLE } from "@/services/store";
 import { syncCartToStore } from "@/redux/features/cart-slice";
 import type { AppDispatch } from "@/redux/store";
+import { storePalette } from "@/lib/storeTheme";
 
 interface StoreContextValue {
   store: PublicStore | null;
@@ -43,15 +44,6 @@ export const toTemplateProduct = (p: StoreProductRow): Product => ({
   createdAt: p.createdAt,
   sold: p.sold,
 });
-
-function readableOn(hex: string) {
-  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
-  if (!m) return "#ffffff";
-  const n = parseInt(m[1], 16);
-  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-  // perceived luminance; dark text on light brand colours keeps buttons legible
-  return 0.299 * r + 0.587 * g + 0.114 * b > 170 ? "#1C274C" : "#ffffff";
-}
 
 export function StoreProvider({ slug, children }: { slug?: string; children: React.ReactNode }) {
   const dispatch = useDispatch<AppDispatch>();
@@ -98,21 +90,34 @@ export function StoreProvider({ slug, children }: { slug?: string; children: Rea
 
   if (!slug) return <>{children}</>;
 
-  const brand = store?.brandColor ?? "#3C50E0";
+  const pal = storePalette(store?.brandColor ?? "#3C50E0");
   return (
     <StoreContext.Provider value={value}>
       <div
-        className="store-themed"
-        style={{ ["--brand" as string]: brand, ["--brand-fg" as string]: readableOn(brand) }}
+        className="store-themed min-h-screen"
+        style={{
+          ["--brand" as string]: pal.brand,
+          ["--brand-fg" as string]: pal.brandFg,
+          ["--ink" as string]: pal.ink,
+          ["--tint" as string]: pal.tint,
+          ["--wash" as string]: pal.wash,
+          ["--line" as string]: pal.line,
+          ["--muted" as string]: pal.muted,
+        }}
       >
-        {/* Re-skin the template's blue accent with the business's brand colour */}
+        {/* Re-skin the template's blue/navy with the business's own palette */}
         <style>{`
+          .store-themed{background:var(--wash);color:var(--muted)}
+          .store-themed .font-display,.store-themed h1,.store-themed h2{font-family:var(--font-display),system-ui,sans-serif;letter-spacing:-0.02em}
+          .store-themed .text-dark{color:var(--ink)!important}
+          .store-themed .bg-dark{background-color:var(--ink)!important}
           .store-themed .bg-blue{background-color:var(--brand)!important;color:var(--brand-fg)!important}
           .store-themed .hover\\:bg-blue-dark:hover{background-color:var(--brand)!important;filter:brightness(.9)}
           .store-themed .text-blue,.store-themed .hover\\:text-blue:hover,.store-themed .last\\:text-blue:last-child{color:var(--brand)!important}
           .store-themed .border-blue{border-color:var(--brand)!important}
           .store-themed .before\\:bg-blue::before{background-color:var(--brand)!important}
           .store-themed .focus\\:ring-blue\\/20:focus{--tw-ring-color:color-mix(in srgb,var(--brand) 20%,transparent)!important}
+          .store-themed :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
         `}</style>
         {children}
       </div>

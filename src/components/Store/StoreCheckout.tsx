@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import Breadcrumb from "@/components/Common/Breadcrumb";
+import StoreCrumbs from "./StoreCrumbs";
 import ProductThumb from "@/components/Common/ProductThumb";
 import { useStore } from "@/app/context/StoreContext";
 import { removeAllItemsFromCart, selectTotalPrice } from "@/redux/features/cart-slice";
@@ -13,7 +13,7 @@ import { placeOrder } from "@/services/store";
 import type { PaymentMethod } from "@/types/saas";
 
 const input =
-  "rounded-md border border-gray-3 bg-gray-1 placeholder:text-dark-5 w-full py-2.5 px-5 outline-none duration-200 focus:border-transparent focus:shadow-input focus:ring-2 focus:ring-blue/20";
+  "rounded-xl border border-[color:var(--line)] bg-white placeholder:text-dark-5 w-full py-3 px-4 text-dark outline-none duration-200 focus:border-[color:var(--brand)] focus:ring-2 focus:ring-blue/20";
 
 const METHODS: { id: PaymentMethod; title: string; hint: string }[] = [
   { id: "cod", title: "Pay on delivery", hint: "Pay in cash when your order arrives." },
@@ -44,10 +44,10 @@ export default function StoreCheckout() {
   if (items.length === 0) {
     return (
       <>
-        <Breadcrumb title="Checkout" pages={["checkout"]} />
-        <section className="py-20 text-center">
-          <p className="pb-6">Your cart is empty — add something before checking out.</p>
-          <Link href={href("/shop")} className="inline-flex font-medium text-white bg-dark py-3 px-9 rounded-md hover:bg-opacity-95">
+        <section className="py-24 text-center">
+          <h1 className="mb-2 text-4xl font-bold text-dark">Your cart is empty</h1>
+          <p className="pb-7">Your cart is empty — add something before checking out.</p>
+          <Link href={href("/shop")} className="inline-flex h-12 items-center font-medium text-white bg-dark px-9 rounded-full hover:bg-opacity-95">
             Continue Shopping
           </Link>
         </section>
@@ -84,14 +84,15 @@ export default function StoreCheckout() {
 
   return (
     <>
-      <Breadcrumb title="Checkout" pages={["checkout"]} />
-      <section className="overflow-hidden py-20 bg-gray-2">
-        <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-8">
+      <section className="overflow-hidden pb-8 pt-8 sm:pt-10">
+        <div className="store-container w-full mx-auto px-4 sm:px-8">
+          <StoreCrumbs trail={[{ label: "Cart", to: href("/cart") }, { label: "Checkout" }]} />
+          <h1 className="mb-8 mt-5 text-4xl font-bold text-dark sm:text-5xl">Checkout</h1>
           <form onSubmit={submit} noValidate>
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11">
               <div className="lg:max-w-[920px] w-full">
-                <h2 className="font-medium text-dark text-xl sm:text-2xl mb-5.5">Delivery details</h2>
-                <div className="bg-white shadow-1 rounded-[10px] p-4 sm:p-8.5">
+                <h2 className="mb-5 font-display text-2xl font-bold text-dark">Delivery details</h2>
+                <div className="bg-white rounded-3xl ring-1 ring-inset ring-[color:var(--line)] p-4 sm:p-8.5">
                   <div className="flex flex-col lg:flex-row gap-5 sm:gap-8 mb-5">
                     <div className="w-full">
                       <label htmlFor="firstName" className="block mb-2.5">First Name <span className="text-red">*</span></label>
@@ -134,19 +135,19 @@ export default function StoreCheckout() {
               </div>
 
               <div className="max-w-[455px] w-full">
-                <div className="bg-white shadow-1 rounded-[10px]">
-                  <div className="border-b border-gray-3 py-5 px-4 sm:px-8.5">
-                    <h3 className="font-medium text-xl text-dark">Your Order</h3>
+                <div className="bg-white rounded-3xl ring-1 ring-inset ring-[color:var(--line)]">
+                  <div className="border-b border-[color:var(--line)] py-5 px-4 sm:px-8.5">
+                    <h3 className="font-display text-xl font-bold text-dark">Your order</h3>
                   </div>
                   <div className="pt-2.5 pb-8.5 px-4 sm:px-8.5">
-                    <div className="flex items-center justify-between py-5 border-b border-gray-3">
+                    <div className="flex items-center justify-between py-5 border-b border-[color:var(--line)]">
                       <h4 className="font-medium text-dark">Product</h4>
                       <h4 className="font-medium text-dark text-right">Subtotal</h4>
                     </div>
                     {items.map((item) => (
-                      <div key={item.id} className="flex items-center justify-between gap-3 py-5 border-b border-gray-3">
+                      <div key={item.id} className="flex items-center justify-between gap-3 py-5 border-b border-[color:var(--line)]">
                         <div className="flex items-center gap-3 min-w-0">
-                          <span className="block h-11 w-11 flex-shrink-0 overflow-hidden rounded">
+                          <span className="block h-12 w-12 flex-shrink-0 overflow-hidden rounded-xl">
                             <ProductThumb item={item} variant="thumbnail" size={44} />
                           </span>
                           <p className="text-dark truncate">{item.title} <span className="text-dark-4">× {item.quantity}</span></p>
@@ -154,7 +155,7 @@ export default function StoreCheckout() {
                         <p className="text-dark text-right">${item.discountedPrice * item.quantity}</p>
                       </div>
                     ))}
-                    <div className="flex items-center justify-between py-5 border-b border-gray-3">
+                    <div className="flex items-center justify-between py-5 border-b border-[color:var(--line)]">
                       <p className="text-dark">Delivery</p>
                       <p className="text-dark text-right">Arranged by {store.name}</p>
                     </div>
@@ -165,9 +166,9 @@ export default function StoreCheckout() {
                   </div>
                 </div>
 
-                <div className="bg-white shadow-1 rounded-[10px] mt-7.5">
-                  <div className="border-b border-gray-3 py-5 px-4 sm:px-8.5">
-                    <h3 className="font-medium text-xl text-dark">Payment Method</h3>
+                <div className="bg-white rounded-3xl ring-1 ring-inset ring-[color:var(--line)] mt-7.5">
+                  <div className="border-b border-[color:var(--line)] py-5 px-4 sm:px-8.5">
+                    <h3 className="font-display text-xl font-bold text-dark">Payment method</h3>
                   </div>
                   <div className="p-4 sm:p-8.5">
                     <div className="flex flex-col gap-3" role="radiogroup" aria-label="Payment method">
@@ -186,8 +187,8 @@ export default function StoreCheckout() {
                             className={`mt-4 flex h-4 w-4 flex-shrink-0 rounded-full ${payment === m.id ? "border-4 border-blue" : "border border-gray-4"}`}
                           />
                           <span
-                            className={`w-full rounded-md border-[0.5px] py-3.5 px-5 ease-out duration-200 hover:bg-gray-2 hover:border-transparent ${
-                              payment === m.id ? "border-transparent bg-gray-2" : "border-gray-4 shadow-1"
+                            className={`w-full rounded-2xl border py-3.5 px-5 ease-out duration-200 ${
+                              payment === m.id ? "border-[color:var(--brand)] bg-[color:var(--tint)]" : "border-[color:var(--line)] bg-white"
                             }`}
                           >
                             <span className="block text-dark">{m.title}</span>
@@ -208,7 +209,7 @@ export default function StoreCheckout() {
                 <button
                   type="submit"
                   disabled={busy}
-                  className="w-full flex justify-center font-medium text-white bg-blue py-3 px-6 rounded-md ease-out duration-200 hover:bg-blue-dark mt-7.5 disabled:opacity-60"
+                  className="w-full flex justify-center font-medium text-white bg-blue h-14 items-center px-6 rounded-full ease-out duration-200 hover:brightness-90 mt-7.5 disabled:opacity-60"
                 >
                   {busy ? "Placing your order…" : `Place order · $${total}`}
                 </button>

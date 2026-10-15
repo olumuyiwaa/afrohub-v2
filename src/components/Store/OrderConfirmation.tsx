@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import Breadcrumb from "@/components/Common/Breadcrumb";
 import { useStore } from "@/app/context/StoreContext";
 import { getOrderForConfirmation } from "@/services/store";
 import type { Order } from "@/types/saas";
@@ -33,7 +32,6 @@ export default function OrderConfirmation({ orderId }: { orderId: string }) {
   if (state === "loading") {
     return (
       <>
-        <Breadcrumb title="Order" pages={["order"]} />
         <section className="py-20 text-center" aria-busy="true"><p>Loading your order…</p></section>
       </>
     );
@@ -41,10 +39,9 @@ export default function OrderConfirmation({ orderId }: { orderId: string }) {
   if (state === "missing" || !order) {
     return (
       <>
-        <Breadcrumb title="Order not found" pages={["order"]} />
         <section className="py-20 text-center">
           <p className="mb-6">We couldn&apos;t find that order.</p>
-          <Link href={href("/shop")} className="inline-flex font-medium text-white bg-blue py-3 px-7 rounded-md hover:bg-blue-dark">Back to shop</Link>
+          <Link href={href("/shop")} className="inline-flex h-12 items-center font-medium text-white bg-blue px-7 rounded-full hover:brightness-90">Back to shop</Link>
         </section>
       </>
     );
@@ -52,21 +49,20 @@ export default function OrderConfirmation({ orderId }: { orderId: string }) {
 
   return (
     <>
-      <Breadcrumb title="Order confirmed" pages={["order confirmed"]} />
-      <section className="overflow-hidden py-20 bg-gray-2">
+      <section className="overflow-hidden py-12 sm:py-16">
         <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-8">
-          <div className="mx-auto max-w-[720px] bg-white shadow-1 rounded-[10px] p-6 sm:p-10">
+          <div className="mx-auto max-w-[720px] bg-white rounded-3xl ring-1 ring-inset ring-[color:var(--line)] p-6 sm:p-10">
             <div className="text-center mb-8">
-              <span className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-green-light-6 text-green text-3xl" aria-hidden>✓</span>
-              <h1 className="font-semibold text-dark text-2xl xl:text-custom-2 mb-2">Thank you, {order.customerName.split(" ")[0]}!</h1>
+              <span style={{ background: "var(--brand)", color: "var(--brand-fg)" }} className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full text-3xl" aria-hidden>✓</span>
+              <h1 className="font-bold text-dark text-4xl mb-2">Thank you, {order.customerName.split(" ")[0]}!</h1>
               <p>
                 Your order <span className="font-medium text-dark">{order.number}</span> has been placed with {store.name}.
               </p>
             </div>
 
-            <div className="rounded-lg border border-gray-3 mb-6">
+            <div className="rounded-2xl border border-[color:var(--line)] mb-6">
               {order.items.map((i) => (
-                <div key={i.productId} className="flex items-center justify-between px-5 py-4 border-b border-gray-3">
+                <div key={i.productId} className="flex items-center justify-between px-5 py-4 border-b border-[color:var(--line)]">
                   <p className="text-dark">{i.name} <span className="text-dark-4">× {i.qty}</span></p>
                   <p className="text-dark">${i.qty * i.price}</p>
                 </div>
@@ -84,7 +80,7 @@ export default function OrderConfirmation({ orderId }: { orderId: string }) {
             </dl>
 
             <div className="text-center">
-              <Link href={href("/shop")} className="inline-flex font-medium text-white bg-blue py-3 px-9 rounded-md ease-out duration-200 hover:bg-blue-dark">
+              <Link href={href("/shop")} className="inline-flex h-12 items-center font-medium text-white bg-blue px-9 rounded-full ease-out duration-200 hover:brightness-90">
                 Continue shopping
               </Link>
             </div>

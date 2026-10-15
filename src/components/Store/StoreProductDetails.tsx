@@ -3,13 +3,15 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
-import Breadcrumb from "@/components/Common/Breadcrumb";
-import ProductItem from "@/components/Common/ProductItem";
+import StoreCrumbs from "./StoreCrumbs";
+import StoreProductCard from "./StoreProductCard";
 import ProductThumb from "@/components/Common/ProductThumb";
 import { useStore } from "@/app/context/StoreContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { addItemToCart } from "@/redux/features/cart-slice";
 import { AppDispatch, useAppSelector } from "@/redux/store";
+
+const ring = { ["--tw-ring-color" as string]: "var(--line)" } as React.CSSProperties;
 
 export default function StoreProductDetails({ productId }: { productId: string }) {
   const ctx = useStore();
@@ -20,20 +22,18 @@ export default function StoreProductDetails({ productId }: { productId: string }
   const [qty, setQty] = useState(1);
 
   if (!ctx?.store) return null;
-  const { products, href } = ctx;
+  const { store, products, href } = ctx;
   const product = products.find((p) => String(p.id) === productId);
 
   if (!product) {
     return (
-      <>
-        <Breadcrumb title="Product not found" pages={["product"]} />
-        <section className="py-20 text-center">
-          <p className="mb-6">This product doesn&apos;t exist or is no longer available.</p>
-          <Link href={href("/shop")} className="inline-flex font-medium text-white bg-blue py-3 px-7 rounded-md hover:bg-blue-dark">
-            Back to shop
-          </Link>
-        </section>
-      </>
+      <section className="store-container mx-auto px-4 py-24 text-center sm:px-8">
+        <h1 className="mb-2 text-4xl font-bold text-dark">Product not found</h1>
+        <p className="mb-7">This product doesn&apos;t exist or is no longer available.</p>
+        <Link href={href("/shop")} className="inline-flex h-12 items-center rounded-full px-8 font-medium" style={{ background: "var(--brand)", color: "var(--brand-fg)" }}>
+          Back to shop
+        </Link>
+      </section>
     );
   }
 
@@ -48,108 +48,115 @@ export default function StoreProductDetails({ productId }: { productId: string }
     dispatch(addItemToCart({ ...product, quantity: Math.min(qty, room) }));
   };
 
+  const stepBtn = "flex h-12 w-12 items-center justify-center text-xl text-dark ease-out duration-200 disabled:opacity-35";
+
   return (
     <>
-      <Breadcrumb title={product.title} pages={["shop", product.title]} />
-      <section className="overflow-hidden relative pb-20 pt-5 lg:pt-20 xl:pt-28">
-        <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-8">
-          <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-17.5">
-            <div className="lg:max-w-[570px] w-full">
-              <div className="lg:min-h-[512px] h-[340px] lg:h-[512px] rounded-lg shadow-1 overflow-hidden">
-                <ProductThumb item={product} size={400} />
-              </div>
+      <section className="store-container mx-auto px-4 pb-6 pt-8 sm:px-8 sm:pt-10">
+        <StoreCrumbs
+          trail={[
+            { label: "Shop", to: href("/shop") },
+            ...(product.category ? [{ label: product.category, to: href(`/shop?category=${encodeURIComponent(product.category)}`) }] : []),
+            { label: product.title },
+          ]}
+        />
+
+        <div className="mt-8 grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+          <div className="lg:sticky lg:top-28 lg:self-start">
+            <div className="mx-auto aspect-[4/5] w-full max-w-[560px] overflow-hidden rounded-t-[999px] rounded-b-3xl">
+              <ProductThumb item={product} size={560} />
             </div>
+          </div>
 
-            <div className="max-w-[539px] w-full">
-              <div className="flex items-center justify-between mb-3">
-                <h1 className="font-semibold text-xl sm:text-2xl xl:text-custom-3 text-dark">{product.title}</h1>
-              </div>
+          <div className="max-w-[540px]">
+            <h1 className="text-4xl font-bold leading-[1.05] text-dark sm:text-5xl">{product.title}</h1>
 
-              <div className="flex flex-wrap items-center gap-4.5 mb-4.5">
-                {product.category && (
-                  <Link
-                    href={href(`/shop?category=${encodeURIComponent(product.category)}`)}
-                    className="text-custom-sm hover:text-blue"
-                  >
-                    {product.category}
-                  </Link>
-                )}
-                {product.sku && <span className="text-custom-sm">SKU: {product.sku}</span>}
-                <span className={soldOut ? "text-red" : "text-green"}>
-                  {soldOut ? "Sold out" : stock <= 5 ? `Only ${stock} left` : "In stock"}
+            <p className="mt-5 font-display text-3xl font-semibold text-dark">${product.discountedPrice}</p>
+
+            <p className="mt-3 text-custom-sm font-medium" style={{ color: soldOut ? "#b42318" : "var(--ink)" }}>
+              {soldOut ? "Sold out" : stock <= 5 ? `Only ${stock} left` : "In stock"}
+            </p>
+
+            {product.description && <p className="mt-6 text-lg leading-relaxed">{product.description}</p>}
+
+            <div className="mt-9 flex flex-wrap items-center gap-4">
+              <div className="flex items-center rounded-full bg-white ring-1 ring-inset" style={ring}>
+                <button
+                  type="button"
+                  aria-label="Decrease quantity"
+                  disabled={qty <= 1 || soldOut}
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className={stepBtn}
+                >
+                  −
+                </button>
+                <span className="flex h-12 w-10 items-center justify-center font-medium text-dark" aria-live="polite">
+                  {soldOut ? 0 : Math.min(qty, Math.max(room, 1))}
                 </span>
-              </div>
-
-              <h3 className="font-medium text-custom-1 mb-4.5">
-                <span className="text-xl text-dark">${product.discountedPrice}</span>
-              </h3>
-
-              {product.description && <p className="mb-6">{product.description}</p>}
-
-              <div className="flex flex-col gap-4.5 border-y border-gray-3 mt-7.5 mb-9 py-9">
-                <div className="flex items-center gap-4">
-                  <div className="min-w-[65px]">
-                    <h4 className="font-medium text-dark">Quantity:</h4>
-                  </div>
-                  <div className="flex items-center rounded-md border border-gray-3">
-                    <button
-                      type="button"
-                      aria-label="Decrease quantity"
-                      disabled={qty <= 1 || soldOut}
-                      onClick={() => setQty((q) => Math.max(1, q - 1))}
-                      className="flex items-center justify-center w-12 h-12 text-xl ease-out duration-200 hover:text-blue disabled:opacity-40"
-                    >
-                      −
-                    </button>
-                    <span className="flex items-center justify-center w-16 h-12 border-x border-gray-4" aria-live="polite">
-                      {soldOut ? 0 : Math.min(qty, Math.max(room, 1))}
-                    </span>
-                    <button
-                      type="button"
-                      aria-label="Increase quantity"
-                      disabled={soldOut || qty >= room}
-                      onClick={() => setQty((q) => Math.min(room, q + 1))}
-                      className="flex items-center justify-center w-12 h-12 text-xl ease-out duration-200 hover:text-blue disabled:opacity-40"
-                    >
-                      +
-                    </button>
-                  </div>
-                  {inCart > 0 && <span className="text-custom-sm">{inCart} already in your cart</span>}
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-4.5">
                 <button
                   type="button"
-                  disabled={soldOut || room <= 0}
-                  onClick={() => { add(); openCartModal(); }}
-                  className="inline-flex font-medium text-white bg-blue py-3 px-7 rounded-md ease-out duration-200 hover:bg-blue-dark disabled:opacity-60 disabled:cursor-not-allowed"
+                  aria-label="Increase quantity"
+                  disabled={soldOut || qty >= room}
+                  onClick={() => setQty((q) => Math.min(room, q + 1))}
+                  className={stepBtn}
                 >
-                  {soldOut ? "Sold out" : room <= 0 ? "Max in cart" : "Add to cart"}
-                </button>
-                <button
-                  type="button"
-                  disabled={soldOut || (room <= 0 && inCart === 0)}
-                  onClick={() => { add(); router.push(href("/checkout")); }}
-                  className="inline-flex font-medium text-white bg-dark py-3 px-7 rounded-md ease-out duration-200 hover:bg-opacity-95 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  Buy now
+                  +
                 </button>
               </div>
+              {inCart > 0 && <span className="text-custom-sm">{inCart} already in your cart</span>}
             </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                disabled={soldOut || room <= 0}
+                onClick={() => {
+                  add();
+                  openCartModal();
+                }}
+                className="inline-flex h-14 items-center justify-center rounded-full px-8 font-medium ease-out duration-200 hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ background: "var(--brand)", color: "var(--brand-fg)" }}
+              >
+                {soldOut ? "Sold out" : room <= 0 ? "Max in cart" : "Add to cart"}
+              </button>
+              <button
+                type="button"
+                disabled={soldOut || (room <= 0 && inCart === 0)}
+                onClick={() => {
+                  add();
+                  router.push(href("/checkout"));
+                }}
+                className="inline-flex h-14 items-center justify-center rounded-full px-8 font-medium text-dark ring-1 ring-inset ease-out duration-200 hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                style={{ ["--tw-ring-color" as string]: "color-mix(in srgb, var(--ink) 35%, transparent)" } as React.CSSProperties}
+              >
+                Buy now
+              </button>
+            </div>
+
+            <dl className="mt-10 divide-y border-y text-custom-sm" style={{ borderColor: "var(--line)" }}>
+              {[
+                ["Payment", "Cash on delivery or bank transfer"],
+                ["Ships from", `${store.city}, ${store.country}`],
+                ...(product.category ? [["Category", product.category]] : []),
+                ...(product.sku ? [["SKU", product.sku]] : []),
+              ].map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-6 py-3.5" style={{ borderColor: "var(--line)" }}>
+                  <dt>{k}</dt>
+                  <dd className="text-right font-medium text-dark">{v}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </div>
       </section>
 
       {related.length > 0 && (
-        <section className="overflow-hidden pb-20">
-          <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-8">
-            <h2 className="font-semibold text-xl xl:text-heading-5 text-dark mb-7">You may also like</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-7.5 gap-y-9">
-              {related.map((item) => (
-                <ProductItem item={item} key={item.id} />
-              ))}
-            </div>
+        <section className="store-container mx-auto px-4 pt-14 sm:px-8">
+          <h2 className="mb-8 text-3xl font-bold text-dark sm:text-4xl">You may also like</h2>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
+            {related.map((item) => (
+              <StoreProductCard item={item} key={item.id} />
+            ))}
           </div>
         </section>
       )}

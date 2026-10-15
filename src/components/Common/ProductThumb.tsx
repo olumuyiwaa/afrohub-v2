@@ -1,5 +1,6 @@
 import React from "react";
 import Image from "next/image";
+import ProductArt from "@/components/Store/ProductArt";
 
 type Thumbable = {
   title: string;
@@ -28,13 +29,8 @@ const ProductThumb = ({
     return <Image src={src} alt={item.title} width={size} height={size} className={className} />;
   }
   return (
-    <div
-      role="img"
-      aria-label={item.title}
-      className={`flex items-center justify-center w-full h-full min-h-[inherit] select-none font-semibold text-dark/40 ${className}`}
-      style={{ background: item.color ?? "#E5E7EB", fontSize: Math.max(18, size / 4) }}
-    >
-      {item.title.trim().charAt(0).toUpperCase()}
+    <div className={`w-full h-full min-h-[inherit] ${className}`}>
+      <ProductArt seed={item.title} label={item.title} color={item.color} />
     </div>
   );
 };
