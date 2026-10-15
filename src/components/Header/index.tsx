@@ -9,12 +9,19 @@ import { useSelector } from "react-redux";
 import { selectTotalPrice } from "@/redux/features/cart-slice";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useStore } from "@/app/context/StoreContext";
 
 const Header = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [navigationOpen, setNavigationOpen] = useState(false);
   const [stickyMenu, setStickyMenu] = useState(false);
   const { openCartModal } = useCartModalContext();
+  const ctx = useStore();
+  const store = ctx?.store ?? null;
+  const inStore = !!ctx; // rendering inside /s/[slug]
+  const href = ctx?.href ?? ((p: string) => p);
+  const router = useRouter();
 
   const product = useAppSelector((state) => state.cartReducer.items);
   const totalPrice = useSelector(selectTotalPrice);
@@ -36,7 +43,11 @@ const Header = () => {
     window.addEventListener("scroll", handleStickyMenu);
   });
 
-  const options = [
+  const storeOptions = [
+    { label: "All Categories", value: "" },
+    ...(ctx?.categories ?? []).map((c) => ({ label: c, value: c })),
+  ];
+  const options = inStore ? storeOptions : [
     { label: "All Categories", value: "0" },
     { label: "Desktop", value: "1" },
     { label: "Laptop", value: "2" },
@@ -47,13 +58,25 @@ const Header = () => {
     { label: "Tablet", value: "7" },
   ];
 
+  const storeMenu = [
+    { id: 1, title: "Home", newTab: false, path: "/" },
+    { id: 2, title: "Shop", newTab: false, path: "/shop" },
+  ];
+
+  const submitSearch = (e: React.FormEvent) => {
+    if (!inStore) return;
+    e.preventDefault();
+    const q = searchQuery.trim();
+    router.push(href(q ? `/shop?q=${encodeURIComponent(q)}` : "/shop"));
+  };
+
   return (
     <header
       className={`fixed left-0 top-0 w-full z-9999 bg-white transition-all ease-in-out duration-300 ${
         stickyMenu && "shadow"
       }`}
     >
-      <div className="store-container mx-auto px-4 sm:px-7.5 xl:px-0">
+      <div className="store-container mx-auto px-4 sm:px-7.5 xl:px-8">
         {/* <!-- header top start --> */}
         <div
           className={`flex flex-col lg:flex-row gap-5 items-end lg:items-center xl:justify-between ease-out duration-200 ${
@@ -64,19 +87,34 @@ const Header = () => {
           <div className="xl:w-auto flex-col sm:flex-row w-full flex sm:justify-between sm:items-center gap-5 sm:gap-10">
             <Link
                 className="hidden lg:flex items-center gap-2 flex-shrink-0"
-                href="/">
-              <Image
-                src="/images/logo/logo.svg"
-                alt="Logo"
-                width={219}
-                height={36}
-              />
+                href={href("/")}>
+              {inStore ? (
+                <span className="flex items-center gap-2.5">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue text-white font-semibold text-lg">
+                    {(store?.name ?? " ").charAt(0).toUpperCase()}
+                  </span>
+                  <span className="font-semibold text-xl text-dark">{store?.name ?? ""}</span>
+                </span>
+              ) : (
+                <Image
+                  src="/images/logo/logo.svg"
+                  alt="Logo"
+                  width={219}
+                  height={36}
+                />
+              )}
             </Link>
 
             <div className="max-w-[475px] w-full">
-              <form>
+              <form onSubmit={submitSearch}>
                 <div className="flex items-center">
-                  <CustomSelect options={options} />
+                  {!inStore && <CustomSelect options={options} />}
+                  {inStore && (ctx?.categories.length ?? 0) > 0 && (
+                    <CustomSelect
+                      options={options}
+                      onSelect={(v) => router.push(href(v ? `/shop?category=${encodeURIComponent(v)}` : "/shop"))}
+                    />
+                  )}
 
                   <div className="relative max-w-[333px] sm:min-w-[333px] w-full">
                     {/* <!-- divider --> */}
@@ -87,7 +125,7 @@ const Header = () => {
                       type="search"
                       name="search"
                       id="search"
-                      placeholder="I am shopping for..."
+                      placeholder={store ? `Search ${store.name}...` : "I am shopping for..."}
                       autoComplete="off"
                       className="custom-search w-full rounded-r-[5px] bg-gray-1 !border-l-0 border border-gray-3 py-2.5 pl-4 pr-10 outline-none ease-in duration-200"
                     />
@@ -147,10 +185,10 @@ const Header = () => {
 
               <div>
                 <span className="block text-2xs text-dark-4 uppercase">
-                  24/7 SUPPORT
+                  {inStore ? "CALL US" : "24/7 SUPPORT"}
                 </span>
                 <p className="font-medium text-custom-sm text-dark">
-                  (+965) 7492-3477
+                  {inStore ? store?.phone ?? "" : "(+965) 7492-3477"}
                 </p>
               </div>
             </div>
@@ -160,6 +198,7 @@ const Header = () => {
 
             <div className="flex w-full lg:w-auto justify-between items-center gap-5">
               <div className="flex items-center gap-5">
+                {!inStore && (
                 <Link href="/wishlist" className="flex items-center gap-2.5">
                   <svg
                       className="fill-current"
@@ -186,6 +225,7 @@ const Header = () => {
                     </p>
                   </div>
                 </Link>
+                )}
 
                 <button
                   onClick={handleOpenCartModal}
@@ -287,7 +327,7 @@ const Header = () => {
       </div>
 
       <div className="border-t border-gray-3">
-        <div className="store-container mx-auto px-4 sm:px-7.5 xl:px-0">
+        <div className="store-container mx-auto px-4 sm:px-7.5 xl:px-8">
           <div className="flex items-center justify-between">
             {/* <!--=== Main Nav Start ===--> */}
             <div
@@ -299,7 +339,7 @@ const Header = () => {
               {/* <!-- Main Nav Start --> */}
               <nav>
                 <ul className="flex xl:items-center flex-col xl:flex-row gap-5 xl:gap-6">
-                  {menuData.map((menuItem, i) =>
+                  {(inStore ? storeMenu : menuData).map((menuItem, i) =>
                     menuItem.submenu ? (
                       <Dropdown
                         key={i}
@@ -312,7 +352,7 @@ const Header = () => {
                         className="group relative before:w-0 before:h-[3px] before:bg-blue before:absolute before:left-0 before:top-0 before:rounded-b-[3px] before:ease-out before:duration-200 hover:before:w-full "
                       >
                         <Link
-                          href={menuItem.path}
+                          href={inStore ? href(menuItem.path) : menuItem.path}
                           className={`hover:text-blue text-custom-sm font-medium text-dark flex ${
                             stickyMenu ? "xl:py-4" : "xl:py-6"
                           }`}

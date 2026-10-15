@@ -28,7 +28,7 @@ const CounDown = () => {
 
   return (
     <section className="overflow-hidden py-20">
-      <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-0">
+      <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-8">
         <div className="relative overflow-hidden z-1 rounded-lg bg-[#D0E9F3] p-4 sm:p-7.5 lg:p-10 xl:p-15">
           <div className="max-w-[422px] w-full">
             <span className="block font-medium text-custom-1 text-blue mb-2.5">

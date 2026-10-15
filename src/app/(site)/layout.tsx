@@ -14,6 +14,7 @@ import CartSidebarModal from "@/components/Common/CartSidebarModal";
 import { PreviewSliderProvider } from "../context/PreviewSliderContext";
 import PreviewSliderModal from "@/components/Common/PreviewSlider";
 
+import { StoreProvider } from "../context/StoreContext";
 import ScrollToTop from "@/components/Common/ScrollToTop";
 import PreLoader from "@/components/Common/PreLoader";
 
@@ -28,6 +29,8 @@ export default function RootLayout({
   // Marketing pages bring their own header/footer and skip the storefront shell.
   const isMarketing = pathname === "/" || pathname?.startsWith("/get-started");
   const skipShell = isAdmin || isMarketing;
+  // Business storefronts live at /s/<slug>/...
+  const storeSlug = pathname?.match(/^\/s\/([^/]+)/)?.[1];
 
   useEffect(() => {
     const t = setTimeout(() => setLoading(false), skipShell ? 0 : 1000);
@@ -43,8 +46,9 @@ export default function RootLayout({
           // Admin + marketing: no storefront header/footer/modals
           <>{children}</>
       ) : (
-          <>
-            <ReduxProvider>
+          <ReduxProvider>
+            {/* StoreProvider wraps header + footer too, so they can read the current business */}
+            <StoreProvider slug={storeSlug}>
               <CartModalProvider>
                 <ModalProvider>
                   <PreviewSliderProvider>
@@ -56,10 +60,10 @@ export default function RootLayout({
                   </PreviewSliderProvider>
                 </ModalProvider>
               </CartModalProvider>
-            </ReduxProvider>
-            <ScrollToTop />
-            <Footer />
-          </>
+              <ScrollToTop />
+              <Footer />
+            </StoreProvider>
+          </ReduxProvider>
       )}
       </body>
       </html>

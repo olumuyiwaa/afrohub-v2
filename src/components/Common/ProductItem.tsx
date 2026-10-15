@@ -10,9 +10,16 @@ import { updateproductDetails } from "@/redux/features/product-details";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import Link from "next/link";
+import ProductThumb from "./ProductThumb";
+import { useStoreHref } from "@/app/context/StoreContext";
+import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 
 const ProductItem = ({ item }: { item: Product }) => {
   const { openModal } = useModalContext();
+  const href = useStoreHref();
+  const { openCartModal } = useCartModalContext();
+  const inStore = !!item.storeId; // business storefront product (vs static template data)
+  const soldOut = item.stock !== undefined && item.stock <= 0;
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -29,6 +36,7 @@ const ProductItem = ({ item }: { item: Product }) => {
         quantity: 1,
       })
     );
+    if (inStore) openCartModal(); // show the shopper their cart straight away
   };
 
   const handleItemToWishList = () => {
@@ -48,9 +56,21 @@ const ProductItem = ({ item }: { item: Product }) => {
   return (
     <div className="group">
       <div className="relative overflow-hidden flex items-center justify-center rounded-lg bg-[#F6F7FB] min-h-[270px] mb-4">
-        <Image src={item.imgs.previews[0]} alt="" width={250} height={250} />
+        {inStore ? (
+          <Link href={href(`/product/${item.id}`)} className="block w-full h-[270px]" aria-label={item.title}>
+            <ProductThumb item={item} size={250} />
+          </Link>
+        ) : (
+          <Image src={item.imgs.previews[0]} alt="" width={250} height={250} />
+        )}
+        {soldOut && (
+          <span className="absolute left-3 top-3 rounded bg-dark px-2.5 py-1 text-2xs font-medium uppercase text-white">
+            Sold out
+          </span>
+        )}
 
         <div className="absolute left-0 bottom-0 translate-y-full w-full flex items-center justify-center gap-2.5 pb-5 ease-linear duration-200 group-hover:translate-y-0">
+          {!inStore && (
           <button
             onClick={() => {
               openModal();
@@ -82,14 +102,17 @@ const ProductItem = ({ item }: { item: Product }) => {
               />
             </svg>
           </button>
+          )}
 
           <button
             onClick={() => handleAddToCart()}
-            className="inline-flex font-medium text-custom-sm py-[7px] px-5 rounded-[5px] bg-blue text-white ease-out duration-200 hover:bg-blue-dark"
+            disabled={soldOut}
+            className="inline-flex font-medium text-custom-sm py-[7px] px-5 rounded-[5px] bg-blue text-white ease-out duration-200 hover:bg-blue-dark disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Add to cart
+            {soldOut ? "Sold out" : "Add to cart"}
           </button>
 
+          {!inStore && (
           <button
             onClick={() => handleItemToWishList()}
             aria-label="button for favorite select"
@@ -112,9 +135,11 @@ const ProductItem = ({ item }: { item: Product }) => {
               />
             </svg>
           </button>
+          )}
         </div>
       </div>
 
+      {(!inStore || item.reviews > 0) && (
       <div className="flex items-center gap-2.5 mb-2">
         <div className="flex items-center gap-1">
           <Image
@@ -151,17 +176,20 @@ const ProductItem = ({ item }: { item: Product }) => {
 
         <p className="text-custom-sm">({item.reviews})</p>
       </div>
+      )}
 
       <h3
         className="font-medium text-dark ease-out duration-200 hover:text-blue mb-1.5"
         onClick={() => handleProductDetails()}
       >
-        <Link href="/shop-details"> {item.title} </Link>
+        <Link href={inStore ? href(`/product/${item.id}`) : "/shop-details"}> {item.title} </Link>
       </h3>
 
       <span className="flex items-center gap-2 font-medium text-lg">
         <span className="text-dark">${item.discountedPrice}</span>
-        <span className="text-dark-4 line-through">${item.price}</span>
+        {item.price > item.discountedPrice && (
+          <span className="text-dark-4 line-through">${item.price}</span>
+        )}
       </span>
     </div>
   );

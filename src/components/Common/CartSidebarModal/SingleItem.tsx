@@ -2,9 +2,13 @@ import React from "react";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/redux/store";
 import Image from "next/image";
+import Link from "next/link";
+import ProductThumb from "../ProductThumb";
+import { useStoreHref } from "@/app/context/StoreContext";
 
 const SingleItem = ({ item, removeItemFromCart }) => {
   const dispatch = useDispatch<AppDispatch>();
+  const href = useStoreHref();
 
   const handleRemoveFromCart = () => {
     dispatch(removeItemFromCart(item.id));
@@ -14,12 +18,20 @@ const SingleItem = ({ item, removeItemFromCart }) => {
     <div className="flex items-center justify-between gap-5">
       <div className="w-full flex items-center gap-6">
         <div className="flex items-center justify-center rounded-[10px] bg-gray-3 max-w-[90px] w-full h-22.5">
-          <Image src={item.imgs?.thumbnails[0]} alt="product" width={100} height={100} />
+          {item.storeId ? (
+            <ProductThumb item={item} variant="thumbnail" size={90} />
+          ) : (
+            <Image src={item.imgs?.thumbnails[0]} alt="product" width={100} height={100} />
+          )}
         </div>
 
         <div>
           <h3 className="font-medium text-dark mb-1 ease-out duration-200 hover:text-blue">
-            <a href="#"> {item.title} </a>
+            {item.storeId ? (
+              <Link href={href(`/product/${item.id}`)}> {item.title} </Link>
+            ) : (
+              <a href="#"> {item.title} </a>
+            )}
           </h3>
           <p className="text-custom-sm">Price: ${item.discountedPrice}</p>
         </div>

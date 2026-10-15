@@ -6,9 +6,16 @@ import { useAppSelector } from "@/redux/store";
 import SingleItem from "./SingleItem";
 import Breadcrumb from "../Common/Breadcrumb";
 import Link from "next/link";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/redux/store";
+import { removeAllItemsFromCart } from "@/redux/features/cart-slice";
+import { useStore } from "@/app/context/StoreContext";
 
 const Cart = () => {
   const cartItems = useAppSelector((state) => state.cartReducer.items);
+  const dispatch = useDispatch<AppDispatch>();
+  const ctx = useStore();
+  const href = ctx?.href ?? ((p: string) => p);
 
   return (
     <>
@@ -19,10 +26,10 @@ const Cart = () => {
       {/* <!-- ===== Breadcrumb Section End ===== --> */}
       {cartItems.length > 0 ? (
         <section className="overflow-hidden py-20 bg-gray-2">
-          <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-0">
+          <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-8">
             <div className="flex flex-wrap items-center justify-between gap-5 mb-7.5">
               <h2 className="font-medium text-dark text-2xl">Your Cart</h2>
-              <button className="text-blue">Clear Shopping Cart</button>
+              <button className="text-blue" onClick={() => dispatch(removeAllItemsFromCart())}>Clear Shopping Cart</button>
             </div>
 
             <div className="bg-white rounded-[10px] shadow-1">
@@ -61,7 +68,7 @@ const Cart = () => {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-7.5 xl:gap-11 mt-9">
-              <Discount />
+              {ctx ? <div className="lg:flex-1" /> : <Discount />}
               <OrderSummary />
             </div>
           </div>
@@ -103,7 +110,7 @@ const Cart = () => {
             <p className="pb-6">Your cart is empty!</p>
 
             <Link
-              href="/shop"
+              href={href("/shop")}
               className="w-96 mx-auto flex justify-center font-medium text-white bg-dark py-[13px] px-6 rounded-md ease-out duration-200 hover:bg-opacity-95"
             >
               Continue Shopping

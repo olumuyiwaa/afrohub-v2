@@ -85,7 +85,20 @@ export default function OrdersPage() {
             <div className="flex items-center gap-3">
               <StatusBadge status={selected.paymentStatus} />
               <StatusBadge status={selected.status} />
+              {selected.paymentMethod && (
+                <span className="text-theme-xs text-gray-500">
+                  {{ cod: "Pay on delivery", bank: "Bank transfer", card: "Card (demo)" }[selected.paymentMethod]}
+                </span>
+              )}
             </div>
+            {(selected.shippingAddress || selected.customerEmail || selected.notes) && (
+              <dl className="grid grid-cols-3 gap-y-3 rounded-xl bg-gray-50 p-4 text-theme-sm dark:bg-white/5">
+                {selected.shippingAddress && (<><dt className="text-gray-500">Deliver to</dt><dd className="col-span-2 text-gray-800 dark:text-white/90">{selected.shippingAddress}</dd></>)}
+                {selected.customerEmail && (<><dt className="text-gray-500">Email</dt><dd className="col-span-2 break-all text-gray-800 dark:text-white/90">{selected.customerEmail}</dd></>)}
+                {selected.customerPhone && (<><dt className="text-gray-500">Phone</dt><dd className="col-span-2 text-gray-800 dark:text-white/90">{selected.customerPhone}</dd></>)}
+                {selected.notes && (<><dt className="text-gray-500">Notes</dt><dd className="col-span-2 text-gray-800 dark:text-white/90">{selected.notes}</dd></>)}
+              </dl>
+            )}
             <label className="block">
               <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Update status</span>
               <select disabled={busy} className={inputCls} value={selected.status} onChange={(e) => setStatus(e.target.value as OrderStatus)}>

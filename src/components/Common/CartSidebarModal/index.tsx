@@ -11,12 +11,14 @@ import { useSelector } from "react-redux";
 import SingleItem from "./SingleItem";
 import Link from "next/link";
 import EmptyCart from "./EmptyCart";
+import { useStoreHref } from "@/app/context/StoreContext";
 
 const CartSidebarModal = () => {
   const { isCartModalOpen, closeCartModal } = useCartModalContext();
   const cartItems = useAppSelector((state) => state.cartReducer.items);
 
   const totalPrice = useSelector(selectTotalPrice);
+  const href = useStoreHref();
 
   useEffect(() => {
     // closing modal while clicking outside
@@ -101,14 +103,15 @@ const CartSidebarModal = () => {
             <div className="flex items-center gap-4">
               <Link
                 onClick={() => closeCartModal()}
-                href="/cart"
+                href={href("/cart")}
                 className="w-full flex justify-center font-medium text-white bg-blue py-[13px] px-6 rounded-md ease-out duration-200 hover:bg-blue-dark"
               >
                 View Cart
               </Link>
 
               <Link
-                href="/checkout"
+                onClick={() => closeCartModal()}
+                href={href("/checkout")}
                 className="w-full flex justify-center font-medium text-white bg-dark py-[13px] px-6 rounded-md ease-out duration-200 hover:bg-opacity-95"
               >
                 Checkout

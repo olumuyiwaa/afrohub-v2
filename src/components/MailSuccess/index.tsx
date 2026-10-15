@@ -7,7 +7,7 @@ const MailSuccess = () => {
     <>
       <Breadcrumb title={"MailSuccess"} pages={["MailSuccess"]} />
       <section className="overflow-hidden py-20 bg-gray-2">
-        <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-0">
+        <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-8">
           <div className="bg-white rounded-xl shadow-1 px-4 py-10 sm:py-15 lg:py-20 xl:py-25">
             <div className="text-center">
               <h2 className="font-bold text-blue text-4xl lg:text-[45px] lg:leading-[57px] mb-5">

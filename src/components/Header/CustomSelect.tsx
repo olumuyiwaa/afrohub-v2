@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 
-const CustomSelect = ({ options }) => {
+// onSelect (optional): when given, every option is listed (incl. the first "All" entry)
+// and the parent is told what was picked. Without it the template's original behaviour is kept.
+const CustomSelect = ({ options, onSelect }: { options: any[]; onSelect?: (value: string) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState(options[0]);
 
@@ -11,6 +13,7 @@ const CustomSelect = ({ options }) => {
   const handleOptionClick = (option) => {
     setSelectedOption(option);
     toggleDropdown();
+    onSelect?.(option.value);
   };
 
   useEffect(() => {
@@ -41,7 +44,7 @@ const CustomSelect = ({ options }) => {
         {selectedOption.label}
       </div>
       <div className={`select-items ${isOpen ? "" : "select-hide"}`}>
-        {options.slice(1, -1).map((option, index) => (
+        {(onSelect ? options : options.slice(1, -1)).map((option, index) => (
           <div
             key={index}
             onClick={() => handleOptionClick(option)}

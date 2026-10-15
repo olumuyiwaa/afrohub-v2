@@ -117,6 +117,8 @@ export type OrderStatus =
 
 export type PaymentStatus = "paid" | "unpaid" | "refunded";
 
+export type PaymentMethod = "cod" | "bank" | "card";
+
 export interface OrderItem {
   productId: string;
   name: string;
@@ -135,6 +137,25 @@ export interface Order {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   placedAt: string;
+  // Captured at storefront checkout (absent on older seeded orders)
+  customerEmail?: string;
+  customerPhone?: string;
+  shippingAddress?: string;
+  notes?: string;
+  paymentMethod?: PaymentMethod;
+}
+
+/** What a shopper is allowed to see about a business. */
+export interface PublicStore {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  description: string;
+  phone: string;
+  city: string;
+  country: string;
+  brandColor: string;
 }
 
 export interface Customer {

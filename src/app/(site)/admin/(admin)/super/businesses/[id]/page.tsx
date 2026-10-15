@@ -8,6 +8,7 @@ import { Card, CardHeader, ErrorNote, PageLoading, StatCard } from "@/components
 import StatusBadge from "@/components/saas/StatusBadge";
 import { DangerButton, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import { money, shortDate } from "@/lib/format";
+import { storePath } from "@/lib/store";
 import type { BusinessStatus } from "@/types/saas";
 
 export default function BusinessDetailPage() {
@@ -80,13 +81,22 @@ export default function BusinessDetailPage() {
               ["Owner", b.ownerName],
               ["Email", b.ownerEmail],
               ["Phone", b.phone],
-              ["Store URL", `afrohub.com/${b.slug}`],
             ].map(([k, v]) => (
               <div key={k} className="contents">
                 <dt className="text-gray-500">{k}</dt>
                 <dd className="col-span-2 break-all text-gray-800 dark:text-white/90">{v}</dd>
               </div>
             ))}
+            <dt className="text-gray-500">Storefront</dt>
+            <dd className="col-span-2 break-all">
+              {b.status === "active" || b.status === "trial" ? (
+                <a href={storePath(b.slug)} target="_blank" rel="noopener noreferrer" className="text-brand-500 hover:text-brand-600">
+                  {storePath(b.slug)} ↗
+                </a>
+              ) : (
+                <span className="text-gray-500">Offline ({b.status})</span>
+              )}
+            </dd>
           </dl>
         </Card>
 

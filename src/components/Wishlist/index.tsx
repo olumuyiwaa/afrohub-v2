@@ -11,7 +11,7 @@ export const Wishlist = () => {
     <>
       <Breadcrumb title={"Wishlist"} pages={["Wishlist"]} />
       <section className="overflow-hidden py-20 bg-gray-2">
-        <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-0">
+        <div className="store-container w-full mx-auto px-4 sm:px-8 xl:px-8">
           <div className="flex flex-wrap items-center justify-between gap-5 mb-7.5">
             <h2 className="font-medium text-dark text-2xl">Your Wishlist</h2>
             <button className="text-blue">Clear Wishlist Cart</button>

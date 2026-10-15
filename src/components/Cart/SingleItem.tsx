@@ -7,9 +7,14 @@ import {
 } from "@/redux/features/cart-slice";
 
 import Image from "next/image";
+import Link from "next/link";
+import ProductThumb from "../Common/ProductThumb";
+import { useStoreHref } from "@/app/context/StoreContext";
 
 const SingleItem = ({ item }) => {
   const [quantity, setQuantity] = useState(item.quantity);
+  const href = useStoreHref();
+  const atMax = item.stock !== undefined && quantity >= item.stock;
 
   const dispatch = useDispatch<AppDispatch>();
 
@@ -18,6 +23,7 @@ const SingleItem = ({ item }) => {
   };
 
   const handleIncreaseQuantity = () => {
+    if (atMax) return; // can't order more than is in stock
     setQuantity(quantity + 1);
     dispatch(updateCartItemQuantity({ id: item.id, quantity: quantity + 1 }));
   };
@@ -37,12 +43,20 @@ const SingleItem = ({ item }) => {
         <div className="flex items-center justify-between gap-5">
           <div className="w-full flex items-center gap-5.5">
             <div className="flex items-center justify-center rounded-[5px] bg-gray-2 max-w-[80px] w-full h-17.5">
-              <Image width={200} height={200} src={item.imgs?.thumbnails[0]} alt="product" />
+              {item.storeId ? (
+                <ProductThumb item={item} variant="thumbnail" size={70} />
+              ) : (
+                <Image width={200} height={200} src={item.imgs?.thumbnails[0]} alt="product" />
+              )}
             </div>
 
             <div>
               <h3 className="text-dark ease-out duration-200 hover:text-blue">
-                <a href="#"> {item.title} </a>
+                {item.storeId ? (
+                  <Link href={href(`/product/${item.id}`)}> {item.title} </Link>
+                ) : (
+                  <a href="#"> {item.title} </a>
+                )}
               </h3>
             </div>
           </div>
@@ -81,8 +95,9 @@ const SingleItem = ({ item }) => {
 
           <button
             onClick={() => handleIncreaseQuantity()}
+            disabled={atMax}
             aria-label="button for add product"
-            className="flex items-center justify-center w-11.5 h-11.5 ease-out duration-200 hover:text-blue"
+            className="disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center w-11.5 h-11.5 ease-out duration-200 hover:text-blue"
           >
             <svg
               className="fill-current"

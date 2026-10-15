@@ -2,7 +2,8 @@
 import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
-import { getBusinessOverview } from "@/services/business";
+import { getBusinessOverview, getBusinessProfile } from "@/services/business";
+import { storePath } from "@/lib/store";
 import { Card, CardHeader, ErrorNote, PageHeader, PageLoading, StatCard } from "@/components/saas/Card";
 import { AreaSeriesChart, DonutChart } from "@/components/saas/Charts";
 import StatusBadge, { label } from "@/components/saas/StatusBadge";
@@ -12,6 +13,7 @@ export default function BusinessDashboard() {
   const { user } = useAuth();
   const bid = user!.businessId!;
   const { data, loading, error, reload } = useAsync(() => getBusinessOverview(bid), [bid]);
+  const { data: profile } = useAsync(() => getBusinessProfile(bid), [bid]);
   if (loading) return <PageLoading />;
   if (error || !data) return <ErrorNote message={error ?? "Could not load dashboard."} onRetry={reload} />;
 
@@ -19,7 +21,22 @@ export default function BusinessDashboard() {
 
   return (
     <>
-      <PageHeader title={`Welcome back, ${user!.name.split(" ")[0]}`} subtitle="Here's how your store is performing." />
+      <PageHeader
+        title={`Welcome back, ${user!.name.split(" ")[0]}`}
+        subtitle="Here's how your store is performing."
+        action={
+          profile && (
+            <a
+              href={storePath(profile.slug)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white shadow-theme-xs transition hover:bg-brand-600"
+            >
+              View my store ↗
+            </a>
+          )
+        }
+      />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
         <StatCard label="Revenue (30d)" value={money(data.revenue30d)} change={data.revenueChangePct} hint="vs previous 30 days" />
         <StatCard label="Orders (30d)" value={String(data.orders30d)} change={data.ordersChangePct} />

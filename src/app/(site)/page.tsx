@@ -35,6 +35,13 @@ export default function LandingPage() {
             <Link href="/get-started" className="rounded-lg bg-white px-6 py-3.5 text-sm font-semibold text-brand-700 hover:bg-brand-50">Start your free trial</Link>
             <Link href="/admin/login" className="rounded-lg px-6 py-3.5 text-sm font-semibold text-white ring-1 ring-inset ring-white/30 hover:bg-white/10">See the demo dashboard</Link>
           </div>
+          <p className="mt-6 text-sm text-brand-100/70">
+            Or{" "}
+            <Link href="/s/adire-hub" className="font-medium text-white underline underline-offset-4 hover:text-brand-100">
+              browse a demo store
+            </Link>{" "}
+            to see what your customers get.
+          </p>
         </div>
       </section>
 
