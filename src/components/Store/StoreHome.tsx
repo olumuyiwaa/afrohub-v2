@@ -107,7 +107,7 @@ export default function StoreHome() {
             <HeroTile
               item={featured[0]}
               to={featured[0] ? href(`/product/${featured[0].id}`) : href("/shop")}
-              className="row-span-2 rounded-t-[999px] rounded-b-3xl"
+              className="row-span-2 rounded-3xl"
               fallbackSeed={`${store.name}-a`}
               fallbackColor={featured[0]?.color ?? "#F4C9A8"}
             />

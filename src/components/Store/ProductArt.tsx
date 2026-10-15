@@ -4,7 +4,7 @@ import { hash, mix } from "@/lib/storeTheme";
 /**
  * Placeholder artwork for products without a photo: a woven-textile pattern
  * (diamonds, adire dots, mudcloth zig-zags, scales, kente bands, crosses)
- * picked from the product name, with an arch "window" holding the initial.
+ * picked from the product name, with a rounded plate holding the initial.
  * Deterministic, so a product always keeps the same picture.
  */
 const MOTIFS = ["diamonds", "dots", "zigzag", "scales", "bands", "crosses"] as const;
@@ -99,11 +99,10 @@ export default function ProductArt({
       <rect width="100" height="100" fill={`url(#p${uid})`} />
       {showInitial && (
         <>
-          <path d="M30 78V48a20 20 0 0 1 40 0v30Z" fill={window} />
-          <path d="M30 78V48a20 20 0 0 1 40 0v30Z" fill="none" stroke={ink} strokeOpacity="0.22" strokeWidth="0.8" />
+          <rect x="32" y="32" width="36" height="36" rx="7" fill={window} />
           <text
             x="50"
-            y="64"
+            y="58.5"
             textAnchor="middle"
             fontSize="22"
             fontWeight="700"

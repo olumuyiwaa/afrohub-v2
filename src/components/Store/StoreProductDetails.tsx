@@ -63,7 +63,7 @@ export default function StoreProductDetails({ productId }: { productId: string }
 
         <div className="mt-8 grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <div className="mx-auto aspect-[4/5] w-full max-w-[560px] overflow-hidden rounded-t-[999px] rounded-b-3xl">
+            <div className="mx-auto aspect-[4/5] w-full max-w-[560px] overflow-hidden rounded-3xl">
               <ProductThumb item={product} size={560} />
             </div>
           </div>
