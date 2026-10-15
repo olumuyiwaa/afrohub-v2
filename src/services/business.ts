@@ -63,6 +63,26 @@ export async function getBusinessOverview(businessId: string): Promise<BusinessO
     topProducts: [...products].sort((a, b) => b.sold - a.sold).slice(0, 5),
     lowStock: products.filter((p) => p.status !== "draft" && p.stock <= 6).slice(0, 5),
     recentOrders: orders.slice(0, 6),
+    ...operational(orders, products, db.team.filter((t) => t.businessId === businessId).length),
+  };
+}
+
+function operational(orders: Order[], products: Product[], teamSize: number) {
+  const live = orders.filter((o) => o.status !== "cancelled" && o.status !== "refunded");
+  const unpaid = live.filter((o) => o.paymentStatus === "unpaid");
+  const sellable = products.filter((p) => p.status !== "draft");
+  return {
+    pendingOrders: orders.filter((o) => o.status === "pending").length,
+    unpaidOrders: unpaid.length,
+    unpaidAmount: unpaid.reduce((s, o) => s + o.total, 0),
+    fulfilmentRatePct: live.length ? (live.filter((o) => o.status === "delivered").length / live.length) * 100 : 0,
+    cancelRatePct: orders.length ? (orders.filter((o) => o.status === "cancelled").length / orders.length) * 100 : 0,
+    outOfStock: sellable.filter((p) => p.stock <= 0).length,
+    lowStockCount: sellable.filter((p) => p.stock > 0 && p.stock <= 6).length,
+    totalOrders: orders.length,
+    productsTotal: products.length,
+    activeProducts: products.filter((p) => p.status === "active").length,
+    teamSize,
   };
 }
 

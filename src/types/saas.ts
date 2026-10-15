@@ -222,6 +222,18 @@ export interface BusinessOverview {
   topProducts: Product[];
   lowStock: Product[];
   recentOrders: Order[];
+  // Operational signals for the "needs attention" panel and the setup checklist
+  pendingOrders: number;
+  unpaidOrders: number;
+  unpaidAmount: number;
+  fulfilmentRatePct: number;
+  cancelRatePct: number;
+  outOfStock: number;
+  lowStockCount: number;
+  totalOrders: number;
+  productsTotal: number;
+  activeProducts: number;
+  teamSize: number;
 }
 
 export interface BusinessUsage {
