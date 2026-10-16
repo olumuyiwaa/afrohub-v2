@@ -1,4 +1,4 @@
-// Domain types for the AfroHub SaaS marketplace.
+// Domain types for the Retailr SaaS marketplace.
 // These mirror what the backend will eventually expose, so the mock services
 // in src/services can be swapped for real API calls without touching the UI.
 

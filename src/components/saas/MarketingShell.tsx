@@ -29,7 +29,7 @@ export default function MarketingShell({ children }: { children: React.ReactNode
             <Logo />
             <p className="mt-3 max-w-xs text-sm text-gray-500">The home for African small businesses online.</p>
           </div>
-          <p className="text-sm text-gray-400">© {new Date().getFullYear()} AfroHub. All rights reserved.</p>
+          <p className="text-sm text-gray-400">© {new Date().getFullYear()} Retailr. All rights reserved.</p>
         </div>
       </footer>
     </div>

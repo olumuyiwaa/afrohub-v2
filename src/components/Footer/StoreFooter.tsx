@@ -61,7 +61,7 @@ const StoreFooter = () => {
         <div className="flex flex-wrap items-center justify-between gap-3 border-t py-6 text-custom-sm" style={{ borderColor: "rgba(255,255,255,.14)" }}>
           <p>&copy; {year} {store.name}</p>
           <p>
-            Store powered by <span className="font-medium text-white">AfroHub</span>
+            Store powered by <span className="font-medium text-white">Retailr</span>
           </p>
         </div>
       </div>

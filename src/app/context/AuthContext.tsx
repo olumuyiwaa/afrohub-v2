@@ -4,7 +4,7 @@ import type { AuthUser, Role } from "@/types/saas";
 import * as authService from "@/services/auth";
 import type { RegisterPayload } from "@/services/auth";
 
-const STORAGE_KEY = "afrohub:user";
+const STORAGE_KEY = "retailr:user";
 
 interface AuthContextValue {
   user: AuthUser | null;

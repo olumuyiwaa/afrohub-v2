@@ -44,7 +44,7 @@ export default function BillingPage() {
 
   return (
     <>
-      <PageHeader title="Billing & plan" subtitle="Manage your AfroHub subscription." />
+      <PageHeader title="Billing & plan" subtitle="Manage your Retailr subscription." />
       {notice && <div role="status" className="mb-4 rounded-xl bg-success-50 px-4 py-3 text-sm text-success-700 dark:bg-success-500/10 dark:text-success-400">{notice}</div>}
       {actionError && <div className="mb-4"><ErrorNote message={actionError} /></div>}
 

@@ -51,7 +51,7 @@ export default function StoreGate({ children }: { children: React.ReactNode }) {
             href="/"
             className="inline-flex font-medium text-white bg-dark h-12 items-center px-7 rounded-full ease-out duration-200 hover:bg-opacity-95"
           >
-            Go to AfroHub
+            Go to Retailr
           </Link>
         </div>
       </div>

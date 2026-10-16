@@ -12,7 +12,7 @@ export async function login(email: string, password: string): Promise<AuthUser> 
   if (user.businessId) {
     const biz = db.businesses.find((b) => b.id === user.businessId);
     if (biz?.status === "suspended") {
-      throw new ServiceError("This business account is suspended. Contact AfroHub support.");
+      throw new ServiceError("This business account is suspended. Contact Retailr support.");
     }
     if (biz?.status === "cancelled") {
       throw new ServiceError("This business account has been cancelled.");

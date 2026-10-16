@@ -6,7 +6,7 @@
 import * as seed from "@/mock/seed";
 import type { AuthUser } from "@/types/saas";
 
-const STORAGE_KEY = "afrohub:db:v5";
+const STORAGE_KEY = "retailr:db:v1";
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 
 const fresh = () => ({
@@ -90,7 +90,7 @@ export const db: DB = observe(raw);
 export function resetDemoData() {
   try {
     window.localStorage.removeItem(STORAGE_KEY);
-    window.localStorage.removeItem("afrohub:user");
+    window.localStorage.removeItem("retailr:user");
   } catch {
     /* ignore */
   }

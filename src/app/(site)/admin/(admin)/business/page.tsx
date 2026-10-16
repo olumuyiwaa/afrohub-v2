@@ -41,9 +41,9 @@ export default function BusinessDashboard() {
   const trialDays = sub?.trialEndsAt ? Math.ceil((new Date(sub.trialEndsAt).getTime() - Date.now()) / DAY) : null;
   const banner: { tone: "red" | "amber" | "blue"; text: string; cta?: boolean } | null =
     profile.status === "suspended"
-      ? { tone: "red", text: "Your store is offline because the account is suspended. Contact AfroHub support to get it back online." }
+      ? { tone: "red", text: "Your store is offline because the account is suspended. Contact Retailr support to get it back online." }
       : profile.status === "pending"
-        ? { tone: "amber", text: "Your store is waiting for approval. It will go live as soon as AfroHub confirms your details." }
+        ? { tone: "amber", text: "Your store is waiting for approval. It will go live as soon as Retailr confirms your details." }
         : sub?.status === "past_due"
           ? { tone: "red", cta: true, text: "Your last payment failed. Update your payment method to keep your store online." }
           : sub?.status === "cancelled"

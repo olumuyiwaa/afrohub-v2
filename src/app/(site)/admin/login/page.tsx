@@ -73,7 +73,7 @@ export default function LoginPage() {
           </form>
 
           <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-            New to AfroHub?{" "}
+            New to Retailr?{" "}
             <Link href="/get-started" className="font-medium text-brand-500 hover:text-brand-600">Start your free trial</Link>
           </p>
 

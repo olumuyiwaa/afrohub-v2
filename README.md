@@ -1,4 +1,4 @@
-# AfroHub
+# Retailr
 
 A multi-tenant SaaS platform that lets small African businesses subscribe, get their own online storefront and run it from a simple admin. Think Bumpa-style commerce for sellers: products, orders, customers, discounts, invoices and billing, with local-currency pricing.
 
@@ -12,7 +12,7 @@ A multi-tenant SaaS platform that lets small African businesses subscribe, get t
 | --- | --- | --- |
 | Marketing + sign-up | `/`, `/get-started` | Prospective businesses |
 | Business admin | `/admin/business/*` | Store owners and staff |
-| Super admin | `/admin/super/*` | The AfroHub team |
+| Super admin | `/admin/super/*` | The Retailr team |
 | Public storefront | `/s/<slug>` | Shoppers |
 
 **Business admin:** dashboard with setup checklist, KPIs and needs-attention panel; products (up to 6 photos with a cover image, size/colour variants with their own stock and price); orders (status updates, invoice link, send receipt); customers (filter by group); record a sale (in person, WhatsApp, Instagram or phone sales with custom prices, discount, paid/owing and walk-in or saved customers; stock updates immediately); reports (sales over time, by channel and payment method, best sellers, top customers, money still owed); customer groups (automatic rules like "spent over X" or hand-picked); messages (email, SMS or WhatsApp to everyone or a group, with {{first_name}} personalisation; demo only, nothing is delivered); discounts and coupons; team; billing and plan changes; store settings.
@@ -52,13 +52,13 @@ Go to `/admin/login` and pick an account (password for all: `demo1234`).
 
 | Role | Email |
 | --- | --- |
-| Super admin | `admin@afrohub.com` |
+| Super admin | `admin@retailr.com` |
 | Business admin (Adire Hub, Growth plan) | `amara@adirehub.com` |
 | Business admin (Kente & Co, Scale plan) | `kwame@kenteandco.com` |
 
 Try a storefront at `/s/adire-hub` or `/s/kente-co`. Coupon codes to try at checkout: `WELCOME10`, `SAVE5` (minimum $50).
 
-Demo data lives in your browser's localStorage (`afrohub:db:v4`). The login page has a reset option, or clear site data to start fresh.
+Demo data lives in your browser's localStorage (`retailr:db:v1`). The login page has a reset option, or clear site data to start fresh.
 
 ## Project structure
 

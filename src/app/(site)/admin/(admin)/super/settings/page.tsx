@@ -5,8 +5,8 @@ import { Field, inputCls, PrimaryButton } from "@/components/saas/Form";
 
 // Platform-level settings. Persisted to localStorage only for now; the real
 // backend will own these values.
-const KEY = "afrohub:platform-settings";
-const defaults = { platformName: "AfroHub", supportEmail: "support@afrohub.com", trialDays: 14, currency: "USD", requireApproval: true };
+const KEY = "retailr:platform-settings";
+const defaults = { platformName: "Retailr", supportEmail: "support@retailr.com", trialDays: 14, currency: "USD", requireApproval: true };
 
 function load() {
   try {
@@ -34,7 +34,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <PageHeader title="Platform settings" subtitle="Defaults applied to every business on AfroHub." />
+      <PageHeader title="Platform settings" subtitle="Defaults applied to every business on Retailr." />
       <Card className="max-w-2xl">
         <CardHeader title="General" />
         <form onSubmit={submit} className="space-y-4 p-5 sm:p-6">

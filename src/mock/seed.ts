@@ -1,4 +1,4 @@
-// Deterministic mock data for the AfroHub SaaS marketplace.
+// Deterministic mock data for the Retailr SaaS marketplace.
 // Everything is generated from a fixed seed so screens look the same every
 // run. Dates are relative to "now" so charts always show recent activity.
 
@@ -556,7 +556,7 @@ export const demoAccounts = [
   {
     id: "usr_super",
     name: "Platform Admin",
-    email: "admin@afrohub.com",
+    email: "admin@retailr.com",
     role: "super_admin" as const,
   },
   {

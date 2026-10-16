@@ -4,8 +4,8 @@ import MarketingShell, { MARKETING_WIDTH } from "@/components/saas/MarketingShel
 import PricingCards from "@/components/saas/PricingCards";
 
 export const metadata: Metadata = {
-  title: "AfroHub — Launch your online business",
-  description: "AfroHub gives small businesses a storefront, order management and customer tools on one simple subscription.",
+  title: "Retailr — Launch your online business",
+  description: "Retailr gives small businesses a storefront, order management and customer tools on one simple subscription.",
 };
 
 const features = [

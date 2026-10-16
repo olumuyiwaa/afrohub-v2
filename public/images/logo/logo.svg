@@ -14,9 +14,9 @@
         <ellipse cx="21.5" cy="15" rx="1" ry="2.5" fill="#3C50E0" opacity="0.8"/>
     </g>
 
-    <!-- AfroHub Text -->
+    <!-- Retailr Text -->
     <text x="36" y="26" font-family="'Inter', 'Segoe UI', sans-serif" font-size="22" font-weight="700" fill="#1C274C" letter-spacing="0.5">
-        Afro<tspan fill="#3C50E0">Hub</tspan>
+        Retail<tspan fill="#3C50E0">r</tspan>
     </text>
 
     <!-- Tagline -->

@@ -17,8 +17,8 @@ export function planAmount(plan: Plan, cycle: "monthly" | "yearly", currency: Cu
 export const planPriceLabel = (plan: Plan, cycle: "monthly" | "yearly", currency: Currency) =>
   planAmount(plan, cycle, currency) === 0 ? "Free" : formatCurrency(planAmount(plan, cycle, currency), currency);
 
-const KEY = "afrohub:currency";
-const EVENT = "afrohub:currency-change";
+const KEY = "retailr:currency";
+const EVENT = "retailr:currency-change";
 
 /** Display currency shared across the pricing, sign-up and billing screens. */
 export function useCurrency(): [Currency, (c: Currency) => void] {

@@ -7,7 +7,7 @@ import productDetailsReducer from "./features/product-details";
 
 import { TypedUseSelectorHook, useSelector } from "react-redux";
 
-const CART_KEY = "afrohub:cart:v1";
+const CART_KEY = "retailr:cart:v1";
 
 // The cart survives page refreshes (per browser). Wrapped in try/catch because
 // storage can be unavailable (private mode, blocked cookies).
