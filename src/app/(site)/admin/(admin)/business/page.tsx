@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useBizCurrency, useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
 import { getBilling, getBusinessOverview, getBusinessProfile } from "@/services/business";
@@ -8,7 +9,7 @@ import { Card, CardHeader, ErrorNote, PageHeader, PageLoading } from "@/componen
 import { AreaSeriesChart, DonutChart } from "@/components/saas/Charts";
 import { AlertBanner, Gauge, KpiTile, MiniStats, Panel, PanelEmpty, QuickLinks, SetupChecklist } from "@/components/saas/Dash";
 import StatusBadge, { label } from "@/components/saas/StatusBadge";
-import { money, relativeTime, shortDate } from "@/lib/format";
+import { relativeTime, shortDate } from "@/lib/format";
 
 const DAY = 86400000;
 const STATUS_COLORS: Record<string, string> = {
@@ -18,6 +19,8 @@ const pctChip = (n: number) => `${n >= 0 ? "▲" : "▼"} ${Math.abs(n).toFixed(
 
 export default function BusinessDashboard() {
   const { user } = useAuth();
+  const fmt = useBizMoney();
+  const currency = useBizCurrency();
   const bid = user!.businessId!;
   const { data, loading, error, reload } = useAsync(
     async () => {
@@ -63,7 +66,7 @@ export default function BusinessDashboard() {
 
   const attentionRows = [
     { show: o.pendingOrders > 0, text: `${o.pendingOrders} order${o.pendingOrders === 1 ? "" : "s"} waiting to be processed`, href: "/admin/business/orders", tone: "bg-warning-500" },
-    { show: o.unpaidOrders > 0, text: `${o.unpaidOrders} unpaid order${o.unpaidOrders === 1 ? "" : "s"} (${money(o.unpaidAmount)})`, href: "/admin/business/orders", tone: "bg-warning-500" },
+    { show: o.unpaidOrders > 0, text: `${o.unpaidOrders} unpaid order${o.unpaidOrders === 1 ? "" : "s"} (${fmt(o.unpaidAmount)})`, href: "/admin/business/orders", tone: "bg-warning-500" },
     { show: o.outOfStock > 0, text: `${o.outOfStock} product${o.outOfStock === 1 ? "" : "s"} out of stock`, href: "/admin/business/products", tone: "bg-error-500" },
     { show: o.lowStockCount > 0, text: `${o.lowStockCount} product${o.lowStockCount === 1 ? "" : "s"} running low`, href: "/admin/business/products", tone: "bg-warning-500" },
   ].filter((r) => r.show);
@@ -102,7 +105,7 @@ export default function BusinessDashboard() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
           <KpiTile
             label="Revenue (30d)"
-            value={money(o.revenue30d)}
+            value={fmt(o.revenue30d)}
             hint="vs previous 30 days"
             chip={o.totalOrders ? pctChip(o.revenueChangePct) : undefined}
             chipTone={o.revenueChangePct >= 0 ? "good" : "bad"}
@@ -130,7 +133,7 @@ export default function BusinessDashboard() {
           <Card className="col-span-12 xl:col-span-8">
             <CardHeader title="Revenue" subtitle="Paid orders per day, last 30 days" />
             <div className="px-3 pb-4 sm:px-4">
-              <AreaSeriesChart data={o.revenueSeries} name="Revenue" currency />
+              <AreaSeriesChart data={o.revenueSeries} name="Revenue" currency={currency} />
             </div>
           </Card>
           <div className="col-span-12 xl:col-span-4">
@@ -141,8 +144,8 @@ export default function BusinessDashboard() {
               note={o.totalOrders ? `${o.cancelRatePct.toFixed(0)}% of orders were cancelled.` : "Your rate shows once you have orders."}
               stats={[
                 { label: "Pending", value: String(o.pendingOrders) },
-                { label: "Unpaid", value: money(o.unpaidAmount) },
-                { label: "Avg. order", value: money(Math.round(o.avgOrderValue)) },
+                { label: "Unpaid", value: fmt(o.unpaidAmount) },
+                { label: "Avg. order", value: fmt(Math.round(o.avgOrderValue)) },
               ]}
               action={{ href: "/admin/business/orders", label: "Orders" }}
             />
@@ -151,9 +154,9 @@ export default function BusinessDashboard() {
 
         <MiniStats
           items={[
-            { label: "Average order value", value: money(Math.round(o.avgOrderValue)) },
+            { label: "Average order value", value: fmt(Math.round(o.avgOrderValue)) },
             { label: "Cancel rate", value: `${o.cancelRatePct.toFixed(0)}%` },
-            { label: "Waiting for payment", value: money(o.unpaidAmount) },
+            { label: "Waiting for payment", value: fmt(o.unpaidAmount) },
             { label: "Live products", value: `${o.activeProducts} of ${o.productsTotal}` },
           ]}
         />
@@ -177,7 +180,7 @@ export default function BusinessDashboard() {
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-1">
                       <StatusBadge status={r.status} />
-                      <span className="text-theme-xs font-medium text-gray-600 dark:text-gray-300">{money(r.total)}</span>
+                      <span className="text-theme-xs font-medium text-gray-600 dark:text-gray-300">{fmt(r.total)}</span>
                     </div>
                   </li>
                 ))}

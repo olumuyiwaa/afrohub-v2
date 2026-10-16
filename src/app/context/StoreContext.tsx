@@ -7,6 +7,7 @@ import { getStoreBySlug, listStoreProducts, STORE_UNAVAILABLE } from "@/services
 import { syncCartToStore } from "@/redux/features/cart-slice";
 import type { AppDispatch } from "@/redux/store";
 import { storePalette } from "@/lib/storeTheme";
+import { formatCurrency } from "@/lib/money";
 
 interface StoreContextValue {
   store: PublicStore | null;
@@ -15,6 +16,8 @@ interface StoreContextValue {
   status: "loading" | "ready" | "unavailable" | "error";
   /** Prefix a storefront path with this store's base URL, e.g. "/shop" -> "/s/adire-hub/shop". */
   href: (path: string) => string;
+  /** Formats an amount in this store's currency. */
+  fmt: (n: number) => string;
   reload: () => void;
 }
 
@@ -24,6 +27,9 @@ const StoreContext = createContext<StoreContextValue | null>(null);
 export const useStore = () => useContext(StoreContext);
 
 /** Slug-aware link builder; identity function outside a storefront. */
+/** Amount formatter for the current store's currency (USD outside a storefront). */
+export const useStoreMoney = () => useContext(StoreContext)?.fmt ?? ((n: number) => formatCurrency(n, "USD"));
+
 export const useStoreHref = () => useContext(StoreContext)?.href ?? ((p: string) => p);
 
 export const storeBase = (slug: string) => `/s/${slug}`;
@@ -86,6 +92,7 @@ export function StoreProvider({ slug, children }: { slug?: string; children: Rea
       categories: Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[])).sort(),
       status,
       href: (path: string) => `${storeBase(slug)}${path === "/" ? "" : path}`,
+      fmt: (n: number) => formatCurrency(n, store?.currency ?? "USD"),
       reload: () => setNonce((n) => n + 1),
     };
   }, [slug, store, products, status]);

@@ -36,7 +36,7 @@ export default function StoreHeader() {
   if (!ctx?.store) {
     return <div className="h-[72px] border-b" style={{ borderColor: "var(--line)" }} aria-hidden />;
   }
-  const { store, categories, href } = ctx;
+  const { store, categories, href, fmt } = ctx;
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +129,7 @@ export default function StoreHeader() {
             style={{ background: "var(--brand)", color: "var(--brand-fg)" }}
           >
             <BagIcon />
-            <span className="text-custom-sm">{count > 0 ? `$${total}` : "Cart"}</span>
+            <span className="text-custom-sm">{count > 0 ? fmt(total) : "Cart"}</span>
             {count > 0 && (
               <span
                 className="flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-2xs font-bold"

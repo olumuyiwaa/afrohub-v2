@@ -1,8 +1,9 @@
 // Public storefront services (what a shopper at /s/[slug] can do).
 // Like the other services these only touch the mock db and can be replaced
 // by real API calls later.
-import type { Coupon, Order, OrderItem, PaymentMethod, Product, PublicStore } from "@/types/saas";
+import type { Coupon, Currency, Order, OrderItem, PaymentMethod, Product, PublicStore } from "@/types/saas";
 import { db, delay, ServiceError, uid } from "./db";
+import { formatCurrency } from "@/lib/money";
 
 export const STORE_UNAVAILABLE = "STORE_UNAVAILABLE";
 
@@ -16,6 +17,7 @@ const toPublic = (b: (typeof db.businesses)[number]): PublicStore => ({
   city: b.city,
   country: b.country,
   brandColor: b.brandColor,
+  currency: b.currency,
 });
 
 /** Only businesses that are live (active or on trial) have a public store. */
@@ -37,11 +39,11 @@ export async function listStoreProducts(businessId: string): Promise<Product[]> 
 }
 
 /** Why a coupon can't be used for this subtotal, or the discount it gives. */
-function evaluateCoupon(c: Coupon | undefined, subtotal: number): { discount: number } | { error: string } {
+function evaluateCoupon(c: Coupon | undefined, subtotal: number, currency: Currency = "USD"): { discount: number } | { error: string } {
   if (!c || c.status !== "active") return { error: "That code isn't valid." };
   if (c.expiresAt && new Date(c.expiresAt).getTime() < Date.now()) return { error: "That code has expired." };
   if (c.maxUses != null && c.usedCount >= c.maxUses) return { error: "That code has been fully used." };
-  if (c.minOrder && subtotal < c.minOrder) return { error: `Spend at least $${c.minOrder} to use this code.` };
+  if (c.minOrder && subtotal < c.minOrder) return { error: `Spend at least ${formatCurrency(c.minOrder, currency)} to use this code.` };
   const raw = c.type === "percent" ? (subtotal * c.value) / 100 : c.value;
   return { discount: Math.round(Math.min(raw, subtotal) * 100) / 100 };
 }
@@ -53,7 +55,7 @@ const findCoupon = (businessId: string, code: string) =>
 export async function validateCoupon(businessId: string, code: string, subtotal: number): Promise<{ code: string; discount: number }> {
   await delay(300);
   const c = findCoupon(businessId, code);
-  const r = evaluateCoupon(c, subtotal);
+  const r = evaluateCoupon(c, subtotal, db.businesses.find((b) => b.id === businessId)?.currency);
   if ("error" in r) throw new ServiceError(r.error);
   return { code: c!.code, discount: r.discount };
 }
@@ -128,7 +130,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   let coupon: Coupon | undefined;
   if (input.couponCode) {
     coupon = findCoupon(biz.id, input.couponCode);
-    const r = evaluateCoupon(coupon, subtotal);
+    const r = evaluateCoupon(coupon, subtotal, biz.currency);
     if ("error" in r) throw new ServiceError(r.error);
     discount = r.discount;
   }

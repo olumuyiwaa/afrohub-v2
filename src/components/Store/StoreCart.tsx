@@ -17,7 +17,7 @@ export default function StoreCart() {
   const items = useAppSelector((s) => s.cartReducer.items);
   const total = useSelector(selectTotalPrice);
   if (!ctx?.store) return null;
-  const { href } = ctx;
+  const { href, fmt } = ctx;
 
   if (items.length === 0) {
     return (
@@ -58,9 +58,9 @@ export default function StoreCart() {
                       <h3 className="truncate font-display text-lg font-semibold text-dark">
                         <Link href={href(`/product/${item.id}`)}>{item.title}</Link>
                       </h3>
-                      <p className="text-custom-sm">${item.discountedPrice} each</p>
+                      <p className="text-custom-sm">{fmt(item.discountedPrice)} each</p>
                     </div>
-                    <p className="font-display text-lg font-semibold text-dark">${item.discountedPrice * item.quantity}</p>
+                    <p className="font-display text-lg font-semibold text-dark">{fmt(item.discountedPrice * item.quantity)}</p>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center rounded-full ring-1 ring-inset ring-[color:var(--line)]">
@@ -95,12 +95,12 @@ export default function StoreCart() {
         <aside className={`${card} p-6 sm:p-7 lg:sticky lg:top-28`}>
           <h2 className="font-display text-2xl font-bold text-dark">Order summary</h2>
           <dl className="mt-5 space-y-3 text-custom-sm">
-            <div className="flex justify-between"><dt>Subtotal</dt><dd className="font-medium text-dark">${total}</dd></div>
+            <div className="flex justify-between"><dt>Subtotal</dt><dd className="font-medium text-dark">{fmt(total)}</dd></div>
             <div className="flex justify-between"><dt>Delivery</dt><dd className="text-dark">Arranged by {ctx.store.name}</dd></div>
           </dl>
           <div className="mt-5 flex items-baseline justify-between border-t pt-5" style={{ borderColor: "var(--line)" }}>
             <span className="font-medium text-dark">Total</span>
-            <span className="font-display text-3xl font-bold text-dark">${total}</span>
+            <span className="font-display text-3xl font-bold text-dark">{fmt(total)}</span>
           </div>
           <Link
             href={href("/checkout")}

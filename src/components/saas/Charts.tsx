@@ -1,4 +1,6 @@
 "use client";
+import { formatCurrency } from "@/lib/money";
+import type { Currency } from "@/types/saas";
 import React from "react";
 import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
@@ -18,14 +20,16 @@ export function AreaSeriesChart({
   name,
   height = 280,
   color = "#465fff",
-  currency = false,
+  currency,
 }: {
   data: TimeSeriesPoint[];
   name: string;
   height?: number;
   color?: string;
-  currency?: boolean;
+  /** true for USD, or a currency code */
+  currency?: boolean | Currency;
 }) {
+  const code: Currency | null = currency ? (currency === true ? "USD" : currency) : null;
   const options: ApexOptions = {
     colors: [color],
     chart: { ...base(height), type: "area" },
@@ -44,10 +48,10 @@ export function AreaSeriesChart({
     yaxis: {
       labels: {
         style: { colors: ["#667085"] },
-        formatter: (v) => (currency ? `$${Math.round(v).toLocaleString()}` : String(Math.round(v))),
+        formatter: (v) => (code ? formatCurrency(Math.round(v), code) : String(Math.round(v))),
       },
     },
-    tooltip: { y: { formatter: (v) => (currency ? `$${v.toLocaleString()}` : String(v)) } },
+    tooltip: { y: { formatter: (v) => (code ? formatCurrency(v, code) : String(v)) } },
   };
   return <ReactApexChart options={options} series={[{ name, data: data.map((d) => d.value) }]} type="area" height={height} />;
 }

@@ -9,7 +9,6 @@ const PAY: Record<string, string> = { cod: "Pay on delivery", bank: "Bank transf
 const date = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
 /** Printable invoice / receipt for one order. */
-const usd = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
 export default function StoreInvoice({ orderId }: { orderId: string }) {
   const ctx = useStore();
@@ -27,7 +26,7 @@ export default function StoreInvoice({ orderId }: { orderId: string }) {
   }, [storeId, orderId]);
 
   if (!ctx?.store) return null;
-  const { store, href } = ctx;
+  const { store, href, fmt } = ctx;
 
   if (state !== "ready" || !order) {
     return <section className="py-20 text-center"><p>{state === "loading" ? "Loading invoice…" : "We couldn't find that invoice."}</p></section>;
@@ -95,18 +94,18 @@ export default function StoreInvoice({ orderId }: { orderId: string }) {
                 <tr key={`${i.productId}-${i.variantId ?? ""}`} className="border-b border-[color:var(--line)] text-dark">
                   <td className="py-3.5">{i.name}</td>
                   <td className="py-3.5 text-right">{i.qty}</td>
-                  <td className="py-3.5 text-right">${i.price}</td>
-                  <td className="py-3.5 text-right">${i.qty * i.price}</td>
+                  <td className="py-3.5 text-right">{fmt(i.price)}</td>
+                  <td className="py-3.5 text-right">{fmt(i.qty * i.price)}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
           <dl className="ml-auto mt-6 w-full max-w-[280px] space-y-2 text-custom-sm text-dark">
-            <div className="flex justify-between"><dt>Subtotal</dt><dd>{usd(subtotal)}</dd></div>
-            {order.discount ? <div className="flex justify-between"><dt>Discount{order.couponCode ? ` (${order.couponCode})` : ""}</dt><dd>−{usd(order.discount)}</dd></div> : null}
-            <div className="flex justify-between border-t border-[color:var(--line)] pt-3 text-lg font-semibold"><dt>Total</dt><dd>{usd(order.total)}</dd></div>
-            <div className="flex justify-between text-dark-4"><dt>{paid ? "Amount paid" : "Amount due"}</dt><dd>{usd(order.total)}</dd></div>
+            <div className="flex justify-between"><dt>Subtotal</dt><dd>{fmt(subtotal)}</dd></div>
+            {order.discount ? <div className="flex justify-between"><dt>Discount{order.couponCode ? ` (${order.couponCode})` : ""}</dt><dd>−{fmt(order.discount)}</dd></div> : null}
+            <div className="flex justify-between border-t border-[color:var(--line)] pt-3 text-lg font-semibold"><dt>Total</dt><dd>{fmt(order.total)}</dd></div>
+            <div className="flex justify-between text-dark-4"><dt>{paid ? "Amount paid" : "Amount due"}</dt><dd>{fmt(order.total)}</dd></div>
           </dl>
 
           <p className="mt-12 text-center text-custom-sm">Thank you for shopping with {store.name}.</p>

@@ -1,4 +1,5 @@
 "use client";
+import { formatCurrency, toUsd } from "@/lib/money";
 import Link from "next/link";
 import { useAsync } from "@/hooks/useAsync";
 import { listBusinesses, type BusinessRow } from "@/services/platform";
@@ -29,7 +30,7 @@ const columns: Column<BusinessRow>[] = [
   { key: "plan", header: "Plan", sortValue: (b) => b.planName, render: (b) => b.planName },
   { key: "status", header: "Status", sortValue: (b) => b.status, render: (b) => <StatusBadge status={b.status} /> },
   { key: "mrr", header: "MRR", sortValue: (b) => b.mrr, render: (b) => (b.mrr ? money(b.mrr) : "—") },
-  { key: "gmv", header: "Lifetime sales", sortValue: (b) => b.stats.revenue, render: (b) => money(b.stats.revenue) },
+  { key: "gmv", header: "Lifetime sales", sortValue: (b) => toUsd(b.stats.revenue, b.currency), render: (b) => formatCurrency(b.stats.revenue, b.currency) },
   { key: "joined", header: "Joined", sortValue: (b) => b.joinedAt, render: (b) => shortDate(b.joinedAt) },
 ];
 

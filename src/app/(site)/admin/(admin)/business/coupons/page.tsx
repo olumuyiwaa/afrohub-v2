@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
 import { deleteCoupon, listCoupons, saveCoupon, setCouponStatus } from "@/services/business";
@@ -8,7 +9,7 @@ import DataTable, { type Column } from "@/components/saas/DataTable";
 import StatusBadge from "@/components/saas/StatusBadge";
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import { Modal } from "@/components/ui/modal";
-import { money, shortDate } from "@/lib/format";
+import { shortDate } from "@/lib/format";
 import type { Coupon } from "@/types/saas";
 
 const effective = (c: Coupon): string =>
@@ -19,6 +20,7 @@ const effective = (c: Coupon): string =>
 
 export default function CouponsPage() {
   const { user } = useAuth();
+  const fmt = useBizMoney();
   const bid = user!.businessId!;
   const { data, loading, error, reload } = useAsync(() => listCoupons(bid), [bid]);
   const [editing, setEditing] = useState<Coupon | "new" | null>(null);
@@ -36,8 +38,8 @@ export default function CouponsPage() {
 
   const columns: Column<Coupon>[] = [
     { key: "code", header: "Code", sortValue: (c) => c.code, render: (c) => <span className="font-mono font-semibold text-gray-800 dark:text-white/90">{c.code}</span> },
-    { key: "value", header: "Discount", render: (c) => (c.type === "percent" ? `${c.value}% off` : `${money(c.value)} off`) },
-    { key: "min", header: "Minimum order", render: (c) => (c.minOrder ? money(c.minOrder) : "—") },
+    { key: "value", header: "Discount", render: (c) => (c.type === "percent" ? `${c.value}% off` : `${fmt(c.value)} off`) },
+    { key: "min", header: "Minimum order", render: (c) => (c.minOrder ? fmt(c.minOrder) : "—") },
     { key: "used", header: "Used", sortValue: (c) => c.usedCount, render: (c) => (c.maxUses != null ? `${c.usedCount} / ${c.maxUses}` : String(c.usedCount)) },
     { key: "exp", header: "Expires", render: (c) => (c.expiresAt ? shortDate(c.expiresAt) : "Never") },
     { key: "status", header: "Status", render: (c) => <StatusBadge status={effective(c)} /> },

@@ -11,7 +11,7 @@ import { useSelector } from "react-redux";
 import SingleItem from "./SingleItem";
 import Link from "next/link";
 import EmptyCart from "./EmptyCart";
-import { useStoreHref } from "@/app/context/StoreContext";
+import { useStoreHref, useStoreMoney } from "@/app/context/StoreContext";
 
 const CartSidebarModal = () => {
   const { isCartModalOpen, closeCartModal } = useCartModalContext();
@@ -19,6 +19,7 @@ const CartSidebarModal = () => {
 
   const totalPrice = useSelector(selectTotalPrice);
   const href = useStoreHref();
+  const fmt = useStoreMoney();
 
   useEffect(() => {
     // closing modal while clicking outside
@@ -97,7 +98,7 @@ const CartSidebarModal = () => {
             <div className="flex items-center justify-between gap-5 mb-6">
               <p className="font-medium text-xl text-dark">Subtotal:</p>
 
-              <p className="font-medium text-xl text-dark">${totalPrice}</p>
+              <p className="font-medium text-xl text-dark">{fmt(totalPrice)}</p>
             </div>
 
             <div className="flex items-center gap-4">

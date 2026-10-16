@@ -1,5 +1,6 @@
 import type { AuthUser, Business, Subscription } from "@/types/saas";
 import { DEMO_PASSWORD } from "@/mock/seed";
+import { currencyForCountry } from "@/lib/money";
 import { db, delay, ServiceError, uid } from "./db";
 
 export async function login(email: string, password: string): Promise<AuthUser> {
@@ -59,6 +60,7 @@ export async function registerBusiness(p: RegisterPayload): Promise<AuthUser> {
     country: p.country,
     city: p.city,
     brandColor: "#465fff",
+    currency: currencyForCountry(p.country),
     description: "",
     status: free ? "active" : "trial",
     planId: plan.id,

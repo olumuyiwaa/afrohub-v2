@@ -1,3 +1,4 @@
+import { toUsd } from "@/lib/money";
 // Super admin (platform owner) services.
 import type {
   Business,
@@ -59,7 +60,7 @@ export async function getPlatformOverview(): Promise<PlatformOverview> {
     suspendedBusinesses: count("suspended"),
     newSignups30d: db.businesses.filter((b) => +new Date(b.joinedAt) > thirtyAgo).length,
     churnRatePct: (cancelled30 / payingBase) * 100,
-    gmv: db.businesses.reduce((s, b) => s + b.stats.revenue, 0),
+    gmv: Math.round(db.businesses.reduce((s, b) => s + toUsd(b.stats.revenue, b.currency), 0)),
     mrrSeries,
     signupSeries,
     planDistribution: db.plans.map((p) => ({

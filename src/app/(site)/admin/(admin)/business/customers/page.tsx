@@ -1,13 +1,14 @@
 "use client";
+import { useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
 import { listCustomers } from "@/services/business";
 import { ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import DataTable, { type Column } from "@/components/saas/DataTable";
-import { initials, money, shortDate } from "@/lib/format";
+import { initials, shortDate } from "@/lib/format";
 import type { Customer } from "@/types/saas";
 
-const columns: Column<Customer>[] = [
+const makeColumns = (fmt: (n: number) => string): Column<Customer>[] => [
   {
     key: "name", header: "Customer", sortValue: (c) => c.name,
     render: (c) => (
@@ -22,12 +23,14 @@ const columns: Column<Customer>[] = [
   },
   { key: "city", header: "City", sortValue: (c) => c.city, render: (c) => c.city },
   { key: "orders", header: "Orders", sortValue: (c) => c.orders, render: (c) => c.orders },
-  { key: "spent", header: "Total spent", sortValue: (c) => c.totalSpent, render: (c) => money(c.totalSpent) },
+  { key: "spent", header: "Total spent", sortValue: (c) => c.totalSpent, render: (c) => fmt(c.totalSpent) },
   { key: "joined", header: "Joined", sortValue: (c) => c.joinedAt, render: (c) => shortDate(c.joinedAt) },
 ];
 
 export default function CustomersPage() {
   const { user } = useAuth();
+  const fmt = useBizMoney();
+  const columns = makeColumns(fmt);
   const bid = user!.businessId!;
   const { data, loading, error, reload } = useAsync(() => listCustomers(bid), [bid]);
   if (loading) return <PageLoading />;

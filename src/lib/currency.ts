@@ -1,21 +1,9 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import type { Currency, Plan } from "@/types/saas";
+import { CURRENCIES, formatCurrency, PER_USD } from "./money";
 
-export const CURRENCIES: { code: Currency; symbol: string; label: string; locale: string }[] = [
-  { code: "NGN", symbol: "₦", label: "Naira", locale: "en-NG" },
-  { code: "GHS", symbol: "GH₵", label: "Cedi", locale: "en-GH" },
-  { code: "KES", symbol: "KSh", label: "Shilling", locale: "en-KE" },
-  { code: "USD", symbol: "$", label: "US dollar", locale: "en-US" },
-];
-
-// Rough demo rates, used only for plans that have no hand-set local price.
-const PER_USD: Record<Currency, number> = { USD: 1, NGN: 1500, GHS: 15, KES: 150 };
-
-export function formatCurrency(amount: number, currency: Currency): string {
-  const c = CURRENCIES.find((x) => x.code === currency)!;
-  return `${c.symbol}${Math.round(amount).toLocaleString(c.locale)}`;
-}
+export { CURRENCIES, formatCurrency } from "./money";
 
 /** Price of a plan for a billing cycle, in the chosen display currency. */
 export function planAmount(plan: Plan, cycle: "monthly" | "yearly", currency: Currency): number {

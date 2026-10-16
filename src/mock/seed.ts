@@ -5,6 +5,7 @@
 import type {
   Business,
   Coupon,
+  Currency,
   BusinessStatus,
   Customer,
   Invoice,
@@ -16,6 +17,7 @@ import type {
   Subscription,
   TeamMember,
 } from "@/types/saas";
+import { currencyForCountry } from "@/lib/money";
 
 // ---------- helpers ----------
 
@@ -208,6 +210,7 @@ export const businesses: Business[] = bizSeeds.map((b, i) => {
     country: b.country,
     city: b.city,
     brandColor: b.color,
+    currency: currencyForCountry(b.country),
     description: `${b.name} is a ${b.category.toLowerCase()} business based in ${b.city}, ${b.country}.`,
     status: b.status,
     planId: b.plan,
@@ -215,6 +218,9 @@ export const businesses: Business[] = bizSeeds.map((b, i) => {
     stats: { products: 0, orders: 0, customers: 0, revenue: 0 },
   };
 });
+
+// Catalogue prices are written in USD-ish numbers; scale them to look right in each store currency.
+const PRICE_SCALE: Record<Currency, number> = { USD: 1, NGN: 1000, GHS: 10, KES: 100 };
 
 // ---------- product catalogue ----------
 
@@ -272,7 +278,7 @@ businesses.forEach((biz, idx) => {
   const bizProducts: Product[] = [];
   for (let p = 0; p < productCount; p++) {
     const name = cat.names[p % cat.names.length];
-    const price = int(cat.price[0], cat.price[1]);
+    const price = int(cat.price[0], cat.price[1]) * PRICE_SCALE[biz.currency];
     const stock = chance(0.12) ? 0 : chance(0.2) ? int(1, 6) : int(8, 140);
     const status: Product["status"] =
       stock === 0 ? "out_of_stock" : chance(0.1) ? "draft" : "active";
@@ -383,7 +389,7 @@ businesses.forEach((biz, idx) => {
           id: `${x.id}_${size.toLowerCase()}`,
           name: size,
           stock: base + (i < extra ? 1 : 0),
-          ...(n === 0 && size === "XL" ? { price: x.price + 5 } : {}),
+          ...(n === 0 && size === "XL" ? { price: x.price + 5 * PRICE_SCALE[biz.currency] } : {}),
         }));
       });
   }
@@ -498,9 +504,10 @@ businesses.forEach((biz, idx) => {
       createdAt: daysAgo(int(10, 120)),
       ...extra,
     });
+  const scale = PRICE_SCALE[biz.currency];
   if (idx === 0) {
     mk("WELCOME10", "percent", 10, { usedCount: 14 });
-    mk("SAVE5", "fixed", 5, { minOrder: 50, usedCount: 6 });
+    mk("SAVE5", "fixed", 5 * scale, { minOrder: 50 * scale, usedCount: 6 });
     mk("EID25", "percent", 25, { maxUses: 50, usedCount: 50, expiresAt: daysAgo(20) });
     mk("LOYAL15", "percent", 15, { status: "disabled", usedCount: 3 });
   } else if (biz.status === "active" && chance(0.6)) {

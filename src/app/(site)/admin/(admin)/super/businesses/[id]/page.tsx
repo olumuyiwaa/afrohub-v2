@@ -1,4 +1,5 @@
 "use client";
+import { formatCurrency } from "@/lib/money";
 import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -67,8 +68,8 @@ export default function BusinessDetailPage() {
       {actionError && <div className="mb-4"><ErrorNote message={actionError} /></div>}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
-        <StatCard label="Lifetime sales" value={money(b.stats.revenue)} />
-        <StatCard label="Sales (30d)" value={money(data.revenue30d)} hint={`${data.orders30d} paid orders`} />
+        <StatCard label="Lifetime sales" value={formatCurrency(b.stats.revenue, b.currency)} />
+        <StatCard label="Sales (30d)" value={formatCurrency(data.revenue30d, b.currency)} hint={`${data.orders30d} paid orders`} />
         <StatCard label="Products" value={String(b.stats.products)} />
         <StatCard label="Customers" value={String(b.stats.customers)} />
       </div>

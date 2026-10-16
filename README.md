@@ -23,6 +23,8 @@ A multi-tenant SaaS platform that lets small African businesses subscribe, get t
 
 **Pricing:** a free Basic plan plus Starter, Growth and Scale. Prices display in NGN, GHS, KES or USD via a currency switcher; platform accounting (MRR, invoices) stays in USD.
 
+**Store currency:** each business picks the currency it sells in (NGN, GHS, KES or USD) under Store settings; the storefront, invoices and merchant reports all use it. New businesses default from their country.
+
 **Discounts:** percent or fixed coupons with minimum order, max uses and expiry, validated again when the order is placed.
 
 ## Tech stack
@@ -56,7 +58,7 @@ Go to `/admin/login` and pick an account (password for all: `demo1234`).
 
 Try a storefront at `/s/adire-hub` or `/s/kente-co`. Coupon codes to try at checkout: `WELCOME10`, `SAVE5` (minimum $50).
 
-Demo data lives in your browser's localStorage (`afrohub:db:v2`). The login page has a reset option, or clear site data to start fresh.
+Demo data lives in your browser's localStorage (`afrohub:db:v3`). The login page has a reset option, or clear site data to start fresh.
 
 ## Project structure
 

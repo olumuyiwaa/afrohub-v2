@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
 import { getBusinessProfile, listOrders, markReceiptSent, updateOrderStatus } from "@/services/business";
@@ -8,13 +9,14 @@ import DataTable, { type Column } from "@/components/saas/DataTable";
 import StatusBadge, { label } from "@/components/saas/StatusBadge";
 import { inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import { Modal } from "@/components/ui/modal";
-import { money, shortDate } from "@/lib/format";
+import { shortDate } from "@/lib/format";
 import type { Order, OrderStatus } from "@/types/saas";
 
 const STATUSES: OrderStatus[] = ["pending", "processing", "shipped", "delivered", "cancelled", "refunded"];
 
 export default function OrdersPage() {
   const { user } = useAuth();
+  const fmt = useBizMoney();
   const bid = user!.businessId!;
   const { data, loading, error, reload } = useAsync(() => listOrders(bid), [bid]);
   const { data: profile } = useAsync(() => getBusinessProfile(bid), [bid]);
@@ -59,7 +61,7 @@ export default function OrdersPage() {
     { key: "no", header: "Order", sortValue: (o) => o.number, render: (o) => <span className="font-medium text-gray-800 dark:text-white/90">{o.number}</span> },
     { key: "cust", header: "Customer", sortValue: (o) => o.customerName, render: (o) => o.customerName },
     { key: "items", header: "Items", render: (o) => o.items.reduce((s, i) => s + i.qty, 0) },
-    { key: "total", header: "Total", sortValue: (o) => o.total, render: (o) => money(o.total) },
+    { key: "total", header: "Total", sortValue: (o) => o.total, render: (o) => fmt(o.total) },
     { key: "pay", header: "Payment", sortValue: (o) => o.paymentStatus, render: (o) => <StatusBadge status={o.paymentStatus} /> },
     { key: "status", header: "Status", sortValue: (o) => o.status, render: (o) => <StatusBadge status={o.status} /> },
     { key: "date", header: "Placed", sortValue: (o) => o.placedAt, render: (o) => shortDate(o.placedAt) },
@@ -91,16 +93,16 @@ export default function OrdersPage() {
               {selected.items.map((i) => (
                 <li key={`${i.productId}-${i.variantId ?? ""}`} className="flex justify-between px-4 py-3 text-theme-sm">
                   <span className="text-gray-800 dark:text-white/90">{i.qty} × {i.name}</span>
-                  <span className="text-gray-600 dark:text-gray-400">{money(i.qty * i.price)}</span>
+                  <span className="text-gray-600 dark:text-gray-400">{fmt(i.qty * i.price)}</span>
                 </li>
               ))}
               {selected.discount ? (
                 <li className="flex justify-between px-4 py-3 text-theme-sm text-success-600">
-                  <span>Discount{selected.couponCode ? ` (${selected.couponCode})` : ""}</span><span>−{money(selected.discount)}</span>
+                  <span>Discount{selected.couponCode ? ` (${selected.couponCode})` : ""}</span><span>−{fmt(selected.discount)}</span>
                 </li>
               ) : null}
               <li className="flex justify-between px-4 py-3 text-theme-sm font-semibold text-gray-800 dark:text-white/90">
-                <span>Total</span><span>{money(selected.total)}</span>
+                <span>Total</span><span>{fmt(selected.total)}</span>
               </li>
             </ul>
             <div className="flex items-center gap-3">

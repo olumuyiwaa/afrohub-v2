@@ -4,11 +4,12 @@ import { AppDispatch } from "@/redux/store";
 import Image from "next/image";
 import Link from "next/link";
 import ProductThumb from "../ProductThumb";
-import { useStoreHref } from "@/app/context/StoreContext";
+import { useStoreHref, useStoreMoney } from "@/app/context/StoreContext";
 
 const SingleItem = ({ item, removeItemFromCart }) => {
   const dispatch = useDispatch<AppDispatch>();
   const href = useStoreHref();
+  const fmt = useStoreMoney();
 
   const handleRemoveFromCart = () => {
     dispatch(removeItemFromCart(item.id));
@@ -33,7 +34,7 @@ const SingleItem = ({ item, removeItemFromCart }) => {
               <a href="#"> {item.title} </a>
             )}
           </h3>
-          <p className="text-custom-sm">Price: ${item.discountedPrice}</p>
+          <p className="text-custom-sm">Price: {fmt(item.discountedPrice)}</p>
         </div>
       </div>
 

@@ -11,7 +11,6 @@ const NEXT_STEPS: Record<string, string> = {
   card: "Your demo card payment went through. No real money was taken.",
 };
 
-const usd = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
 export default function OrderConfirmation({ orderId }: { orderId: string }) {
   const ctx = useStore();
@@ -29,7 +28,7 @@ export default function OrderConfirmation({ orderId }: { orderId: string }) {
   }, [storeId, orderId]);
 
   if (!ctx?.store) return null;
-  const { store, href } = ctx;
+  const { store, href, fmt } = ctx;
 
   if (state === "loading") {
     return (
@@ -66,18 +65,18 @@ export default function OrderConfirmation({ orderId }: { orderId: string }) {
               {order.items.map((i) => (
                 <div key={`${i.productId}-${i.variantId ?? ""}`} className="flex items-center justify-between px-5 py-4 border-b border-[color:var(--line)]">
                   <p className="text-dark">{i.name} <span className="text-dark-4">× {i.qty}</span></p>
-                  <p className="text-dark">${i.qty * i.price}</p>
+                  <p className="text-dark">{fmt(i.qty * i.price)}</p>
                 </div>
               ))}
               {order.discount ? (
                 <div className="flex items-center justify-between px-5 py-4 border-b border-[color:var(--line)]">
                   <p className="text-dark">Discount{order.couponCode ? ` (${order.couponCode})` : ""}</p>
-                  <p className="text-dark">−{usd(order.discount)}</p>
+                  <p className="text-dark">−{fmt(order.discount)}</p>
                 </div>
               ) : null}
               <div className="flex items-center justify-between px-5 py-4">
                 <p className="font-medium text-dark">Total</p>
-                <p className="font-medium text-dark">{usd(order.total)}</p>
+                <p className="font-medium text-dark">{fmt(order.total)}</p>
               </div>
             </div>
 

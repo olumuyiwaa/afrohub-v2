@@ -23,7 +23,7 @@ export default function StoreProductDetails({ productId }: { productId: string }
   const [variantId, setVariantId] = useState<string | null>(null);
 
   if (!ctx?.store) return null;
-  const { store, products, href } = ctx;
+  const { store, products, href, fmt } = ctx;
   const product = products.find((p) => String(p.id) === productId);
 
   if (!product) {
@@ -88,7 +88,7 @@ export default function StoreProductDetails({ productId }: { productId: string }
           <div className="max-w-[540px]">
             <h1 className="text-4xl font-bold leading-[1.05] text-dark sm:text-5xl">{product.title}</h1>
 
-            <p className="mt-5 font-display text-3xl font-semibold text-dark">${unitPrice}</p>
+            <p className="mt-5 font-display text-3xl font-semibold text-dark">{fmt(unitPrice)}</p>
 
             <p className="mt-3 text-custom-sm font-medium" style={{ color: soldOut ? "#b42318" : "var(--ink)" }}>
               {soldOut ? "Sold out" : stock <= 5 ? `Only ${stock} left` : "In stock"}

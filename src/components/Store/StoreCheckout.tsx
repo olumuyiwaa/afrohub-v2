@@ -21,7 +21,6 @@ const METHODS: { id: PaymentMethod; title: string; hint: string }[] = [
   { id: "card", title: "Card (demo)", hint: "Demo only — no real payment is taken." },
 ];
 
-const usd = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
 export default function StoreCheckout() {
   const ctx = useStore();
@@ -43,7 +42,7 @@ export default function StoreCheckout() {
   const [error, setError] = useState<string | null>(null);
 
   if (!ctx?.store) return null;
-  const { store, href } = ctx;
+  const { store, href, fmt } = ctx;
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setF((v) => ({ ...v, [k]: e.target.value }));
 
@@ -177,7 +176,7 @@ export default function StoreCheckout() {
                           </span>
                           <p className="text-dark truncate">{item.title} <span className="text-dark-4">× {item.quantity}</span></p>
                         </div>
-                        <p className="text-dark text-right">${item.discountedPrice * item.quantity}</p>
+                        <p className="text-dark text-right">{fmt(item.discountedPrice * item.quantity)}</p>
                       </div>
                     ))}
                     <div className="flex items-center justify-between py-5 border-b border-[color:var(--line)]">
@@ -191,7 +190,7 @@ export default function StoreCheckout() {
                             Discount <span className="rounded-full bg-[color:var(--tint)] px-2.5 py-0.5 text-custom-sm font-medium">{coupon.code}</span>{" "}
                             <button type="button" onClick={() => setCoupon(null)} className="text-custom-sm underline">Remove</button>
                           </p>
-                          <p className="text-right">−{usd(discount)}</p>
+                          <p className="text-right">−{fmt(discount)}</p>
                         </div>
                       ) : (
                         <>
@@ -214,7 +213,7 @@ export default function StoreCheckout() {
                     </div>
                     <div className="flex items-center justify-between pt-5">
                       <p className="font-medium text-lg text-dark">Total</p>
-                      <p className="font-medium text-lg text-dark text-right">{usd(payable)}</p>
+                      <p className="font-medium text-lg text-dark text-right">{fmt(payable)}</p>
                     </div>
                   </div>
                 </div>
@@ -264,7 +263,7 @@ export default function StoreCheckout() {
                   disabled={busy}
                   className="w-full flex justify-center font-medium text-white bg-blue h-14 items-center px-6 rounded-full ease-out duration-200 hover:brightness-90 mt-7.5 disabled:opacity-60"
                 >
-                  {busy ? "Placing your order…" : `Place order · ${usd(payable)}`}
+                  {busy ? "Placing your order…" : `Place order · ${fmt(payable)}`}
                 </button>
               </div>
             </div>

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useBizCurrency, useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
 import { deleteProduct, listProducts, saveProduct, type ProductInput } from "@/services/business";
@@ -8,7 +9,6 @@ import DataTable, { type Column } from "@/components/saas/DataTable";
 import StatusBadge from "@/components/saas/StatusBadge";
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import { Modal } from "@/components/ui/modal";
-import { money } from "@/lib/format";
 import { fileToDataUrl } from "@/lib/image";
 import type { Product, ProductStatus, ProductVariant } from "@/types/saas";
 
@@ -23,6 +23,8 @@ const toDraft = (v?: ProductVariant): DraftVariant => ({
 
 export default function ProductsPage() {
   const { user } = useAuth();
+  const fmt = useBizMoney();
+  const currency = useBizCurrency();
   const bid = user!.businessId!;
   const { data, loading, error, reload } = useAsync(() => listProducts(bid), [bid]);
   const [editing, setEditing] = useState<Product | "new" | null>(null);
@@ -86,7 +88,7 @@ export default function ProductsPage() {
         </div>
       ),
     },
-    { key: "price", header: "Price", sortValue: (p) => p.price, render: (p) => money(p.price) },
+    { key: "price", header: "Price", sortValue: (p) => p.price, render: (p) => fmt(p.price) },
     { key: "stock", header: "Stock", sortValue: (p) => p.stock, render: (p) => p.stock },
     { key: "sold", header: "Sold", sortValue: (p) => p.sold, render: (p) => p.sold },
     { key: "status", header: "Status", sortValue: (p) => p.status, render: (p) => <StatusBadge status={p.status} /> },
@@ -172,7 +174,7 @@ export default function ProductsPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="SKU"><input name="sku" defaultValue={p?.sku} className={inputCls} /></Field>
               <Field label="Category"><input name="category" defaultValue={p?.category ?? ""} className={inputCls} /></Field>
-              <Field label="Price (USD)"><input name="price" type="number" step="0.01" min="0" defaultValue={p?.price ?? ""} className={inputCls} /></Field>
+              <Field label={`Price (${currency})`}><input name="price" type="number" step="0.01" min="0" defaultValue={p?.price ?? ""} className={inputCls} /></Field>
               <Field label={drafts.length ? "Stock (total of variants)" : "Stock"}>
 {drafts.length ? (
                   <input aria-label="Total stock" readOnly value={drafts.reduce((sum, v) => sum + (Number(v.stock) || 0), 0)} className={inputCls} />

@@ -22,12 +22,14 @@ const SectionHead = ({ title, href, cta = "View all" }: { title: string; href: s
 
 function HeroTile({
   item,
+  fmt,
   to,
   className,
   fallbackSeed,
   fallbackColor,
 }: {
   item?: Product;
+  fmt: (n: number) => string;
   to: string;
   className: string;
   fallbackSeed: string;
@@ -41,7 +43,7 @@ function HeroTile({
       {item && (
         <span className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-3 rounded-full bg-white px-4 py-2 text-custom-sm shadow-md">
           <span className="truncate font-medium text-dark">{item.title}</span>
-          <span className="font-semibold text-dark">${item.discountedPrice}</span>
+          <span className="font-semibold text-dark">{fmt(item.discountedPrice)}</span>
         </span>
       )}
     </>
@@ -61,7 +63,7 @@ function HeroTile({
 export default function StoreHome() {
   const ctx = useStore();
   if (!ctx?.store) return null;
-  const { store, products, categories, href } = ctx;
+  const { store, products, categories, href, fmt } = ctx;
 
   const live = products.filter((p) => p.stock === undefined || p.stock > 0);
   const newest = [...products].sort((a, b) => +new Date(b.createdAt ?? 0) - +new Date(a.createdAt ?? 0)).slice(0, 8);
@@ -105,6 +107,7 @@ export default function StoreHome() {
 
           <div className="grid h-[400px] grid-cols-[1.1fr_1fr] grid-rows-2 gap-3 sm:h-[500px]" aria-label="Featured products">
             <HeroTile
+              fmt={fmt}
               item={featured[0]}
               to={featured[0] ? href(`/product/${featured[0].id}`) : href("/shop")}
               className="row-span-2 rounded-3xl"
@@ -112,6 +115,7 @@ export default function StoreHome() {
               fallbackColor={featured[0]?.color ?? "#F4C9A8"}
             />
             <HeroTile
+              fmt={fmt}
               item={featured[1]}
               to={featured[1] ? href(`/product/${featured[1].id}`) : href("/shop")}
               className="rounded-3xl"
@@ -119,6 +123,7 @@ export default function StoreHome() {
               fallbackColor={featured[1]?.color ?? "#BFD8C8"}
             />
             <HeroTile
+              fmt={fmt}
               item={featured[2]}
               to={featured[2] ? href(`/product/${featured[2].id}`) : href("/shop")}
               className="rounded-3xl"

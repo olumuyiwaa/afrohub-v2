@@ -301,7 +301,7 @@ export async function getBusinessProfile(businessId: string): Promise<Business> 
 
 export async function updateBusinessProfile(
   businessId: string,
-  patch: Partial<Pick<Business, "name" | "description" | "phone" | "country" | "city" | "brandColor" | "category">>
+  patch: Partial<Pick<Business, "name" | "description" | "phone" | "country" | "city" | "brandColor" | "category" | "currency">>
 ): Promise<Business> {
   await delay(450);
   const biz = db.businesses.find((b) => b.id === businessId);

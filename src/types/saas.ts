@@ -61,6 +61,8 @@ export interface Business {
   country: string;
   city: string;
   brandColor: string;
+  /** Currency the store sells in; product prices are entered in it. */
+  currency: Currency;
   description: string;
   status: BusinessStatus;
   planId: string;
@@ -196,6 +198,7 @@ export interface PublicStore {
   city: string;
   country: string;
   brandColor: string;
+  currency: Currency;
 }
 
 export interface Customer {

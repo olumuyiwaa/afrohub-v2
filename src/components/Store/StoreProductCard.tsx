@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import type { Product } from "@/types/product";
 import ProductThumb from "@/components/Common/ProductThumb";
-import { useStoreHref } from "@/app/context/StoreContext";
+import { useStoreHref, useStoreMoney } from "@/app/context/StoreContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { addItemToCart } from "@/redux/features/cart-slice";
 import type { AppDispatch } from "@/redux/store";
 
 export default function StoreProductCard({ item }: { item: Product }) {
   const href = useStoreHref();
+  const fmt = useStoreMoney();
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { openCartModal } = useCartModalContext();
@@ -76,7 +77,7 @@ export default function StoreProductCard({ item }: { item: Product }) {
           </h3>
           {item.category && <p className="mt-0.5 text-custom-sm">{item.category}</p>}
         </div>
-        <p className="font-display text-lg font-semibold text-dark">{varies ? "From " : ""}${lowest}</p>
+        <p className="font-display text-lg font-semibold text-dark">{varies ? "From " : ""}{fmt(lowest)}</p>
       </div>
     </article>
   );

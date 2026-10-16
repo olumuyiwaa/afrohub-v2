@@ -6,6 +6,9 @@ import { getBusinessProfile, updateBusinessProfile } from "@/services/business";
 import { Card, CardHeader, ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import { storePath, useStoreUrl } from "@/lib/store";
+import { CURRENCIES } from "@/lib/money";
+import { setBizCurrency } from "@/hooks/useBizMoney";
+import type { Currency } from "@/types/saas";
 
 const CATEGORIES = ["Fashion & Textiles", "Food & Groceries", "Beauty & Wellness", "Crafts & Decor", "Coffee & Tea", "Jewellery", "Other"];
 
@@ -18,6 +21,8 @@ export default function StoreSettingsPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const url = useStoreUrl(data?.slug);
+  const [curSaving, setCurSaving] = useState(false);
+  const [curSaved, setCurSaved] = useState(false);
 
   if (loading) return <PageLoading />;
   if (error || !data) return <ErrorNote message={error ?? "Could not load settings."} onRetry={reload} />;
@@ -45,6 +50,20 @@ export default function StoreSettingsPage() {
       setFormError(err instanceof Error ? err.message : "Could not save settings.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const saveCurrency = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const currency = String(new FormData(e.currentTarget).get("currency")) as Currency;
+    setCurSaving(true);
+    try {
+      await updateBusinessProfile(bid, { currency });
+      setBizCurrency(bid, currency);
+      setCurSaved(true);
+      setTimeout(() => setCurSaved(false), 2500);
+    } finally {
+      setCurSaving(false);
     }
   };
 
@@ -87,6 +106,23 @@ export default function StoreSettingsPage() {
             </p>
           )}
         </div>
+      </Card>
+      <Card className="mb-6 max-w-3xl">
+        <CardHeader title="Store currency" subtitle="Prices on your storefront, invoices and reports use this currency." />
+        <form onSubmit={saveCurrency} className="space-y-3 p-5 sm:p-6">
+          <Field label="Currency">
+            <select name="currency" defaultValue={data.currency} className={inputCls}>
+              {CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.symbol} · {c.label} ({c.code})</option>)}
+            </select>
+          </Field>
+          <p className="text-theme-xs text-gray-500">
+            Changing currency doesn&apos;t convert prices you&apos;ve already entered. Update your product prices and coupons to match.
+          </p>
+          <div className="flex items-center gap-3">
+            <PrimaryButton busy={curSaving}>Save currency</PrimaryButton>
+            {curSaved && <span role="status" className="text-theme-sm text-success-600">Saved</span>}
+          </div>
+        </form>
       </Card>
       <Card className="max-w-3xl">
         <CardHeader title="Business profile" subtitle="Shown on your storefront." />
