@@ -65,7 +65,7 @@ export interface PlaceOrderInput {
   notes?: string;
   paymentMethod: PaymentMethod;
   couponCode?: string;
-  items: { productId: string | number; qty: number }[];
+  items: { productId: string | number; variantId?: string; qty: number }[];
 }
 
 export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
@@ -91,27 +91,37 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   }
 
   // validate every line against current stock BEFORE changing anything
-  const lines: { product: (typeof db.products)[number]; qty: number }[] = [];
+  const lines: { product: (typeof db.products)[number]; variant?: NonNullable<(typeof db.products)[number]["variants"]>[number]; qty: number }[] = [];
   for (const it of input.items) {
     const product = db.products.find((p) => p.id === String(it.productId) && p.businessId === biz.id);
     if (!product || product.status === "draft") {
       throw new ServiceError("One of the items in your cart is no longer available.");
     }
+    if (!Number.isInteger(it.qty) || it.qty < 1) throw new ServiceError("Invalid quantity.");
+    if (product.variants?.length) {
+      const variant = product.variants.find((v) => v.id === it.variantId);
+      if (!variant) throw new ServiceError(`Please choose an option for ${product.name}.`);
+      const label = `${product.name} (${variant.name})`;
+      if (variant.stock <= 0) throw new ServiceError(`${label} is sold out.`);
+      if (it.qty > variant.stock) throw new ServiceError(`Only ${variant.stock} of ${label} left in stock.`);
+      lines.push({ product, variant, qty: it.qty });
+      continue;
+    }
     if (product.status === "out_of_stock" || product.stock <= 0) {
       throw new ServiceError(`${product.name} is sold out.`);
     }
-    if (!Number.isInteger(it.qty) || it.qty < 1) throw new ServiceError("Invalid quantity.");
     if (it.qty > product.stock) {
       throw new ServiceError(`Only ${product.stock} of ${product.name} left in stock.`);
     }
     lines.push({ product, qty: it.qty });
   }
 
-  const items: OrderItem[] = lines.map(({ product, qty }) => ({
+  const items: OrderItem[] = lines.map(({ product, variant, qty }) => ({
     productId: product.id,
-    name: product.name,
+    ...(variant ? { variantId: variant.id } : {}),
+    name: variant ? `${product.name} (${variant.name})` : product.name,
     qty,
-    price: product.price,
+    price: variant?.price ?? product.price,
   }));
   const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
   let discount = 0;
@@ -174,7 +184,8 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
   db.orders.unshift(order);
 
   // inventory + stats
-  for (const { product, qty } of lines) {
+  for (const { product, variant, qty } of lines) {
+    if (variant) variant.stock -= qty;
     product.stock -= qty;
     product.sold += qty;
     if (product.stock <= 0) product.status = "out_of_stock";

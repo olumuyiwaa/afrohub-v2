@@ -64,7 +64,7 @@ export default function OrderConfirmation({ orderId }: { orderId: string }) {
 
             <div className="rounded-2xl border border-[color:var(--line)] mb-6">
               {order.items.map((i) => (
-                <div key={i.productId} className="flex items-center justify-between px-5 py-4 border-b border-[color:var(--line)]">
+                <div key={`${i.productId}-${i.variantId ?? ""}`} className="flex items-center justify-between px-5 py-4 border-b border-[color:var(--line)]">
                   <p className="text-dark">{i.name} <span className="text-dark-4">× {i.qty}</span></p>
                   <p className="text-dark">${i.qty * i.price}</p>
                 </div>

@@ -370,6 +370,23 @@ businesses.forEach((biz, idx) => {
     }
   }
 
+  // Clothing gets size variants (no RNG, so the rest of the seed is unchanged).
+  if (biz.category === "Fashion & Textiles") {
+    bizProducts
+      .filter((x) => x.stock >= 4)
+      .slice(0, 3)
+      .forEach((x, n) => {
+        const sizes = ["S", "M", "L", "XL"];
+        const base = Math.floor(x.stock / 4);
+        const extra = x.stock - base * 4;
+        x.variants = sizes.map((size, i) => ({
+          id: `${x.id}_${size.toLowerCase()}`,
+          name: size,
+          stock: base + (i < extra ? 1 : 0),
+          ...(n === 0 && size === "XL" ? { price: x.price + 5 } : {}),
+        }));
+      });
+  }
   products.push(...bizProducts);
   customers.push(...bizCustomers);
 

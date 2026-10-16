@@ -15,7 +15,7 @@ A multi-tenant SaaS platform that lets small African businesses subscribe, get t
 | Super admin | `/admin/super/*` | The AfroHub team |
 | Public storefront | `/s/<slug>` | Shoppers |
 
-**Business admin:** dashboard with setup checklist, KPIs and needs-attention panel; products; orders (status updates, invoice link, send receipt); customers; discounts and coupons; team; billing and plan changes; store settings.
+**Business admin:** dashboard with setup checklist, KPIs and needs-attention panel; products (photo upload, size/colour variants with their own stock and price); orders (status updates, invoice link, send receipt); customers; discounts and coupons; team; billing and plan changes; store settings.
 
 **Super admin:** platform overview (MRR, churn, sign-ups, alerts); business approvals, suspend/reactivate; plans editor; subscriptions; invoices.
 
@@ -90,7 +90,7 @@ UI code never touches data directly. It calls typed async functions in `src/serv
 - [x] Free plan and local-currency pricing
 - [x] Discounts and coupons
 - [x] Invoices and receipts
-- [ ] Product variants and photo upload
+- [x] Product variants and photo upload
 - [ ] Customer groups and messaging
 - [ ] Payment gateways and delivery integrations
 - [ ] Subdomain routing and custom domains

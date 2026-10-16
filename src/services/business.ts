@@ -94,7 +94,25 @@ export async function listProducts(businessId: string): Promise<Product[]> {
   return db.products.filter((p) => p.businessId === businessId);
 }
 
-export type ProductInput = Pick<Product, "name" | "sku" | "category" | "description" | "price" | "stock" | "status">;
+export type ProductInput = Pick<Product, "name" | "sku" | "category" | "description" | "price" | "stock" | "status"> & {
+  /** data URL to set, null to remove, undefined to leave unchanged */
+  image?: string | null;
+  variants?: Product["variants"];
+};
+
+function cleanVariants(input?: Product["variants"]): Product["variants"] {
+  if (!input || input.length === 0) return undefined;
+  const seen = new Set<string>();
+  return input.map((v) => {
+    const name = v.name.trim();
+    if (!name) throw new ServiceError("Every variant needs a name.");
+    if (seen.has(name.toLowerCase())) throw new ServiceError(`Two variants are both called "${name}".`);
+    seen.add(name.toLowerCase());
+    if (!Number.isInteger(v.stock) || v.stock < 0) throw new ServiceError(`Stock for "${name}" must be a whole number, 0 or more.`);
+    if (v.price !== undefined && !(v.price >= 0)) throw new ServiceError(`Enter a valid price for "${name}".`);
+    return { id: v.id || uid("var"), name, stock: v.stock, ...(v.price !== undefined ? { price: v.price } : {}) };
+  });
+}
 
 export async function saveProduct(
   businessId: string,
@@ -102,12 +120,19 @@ export async function saveProduct(
   id?: string
 ): Promise<Product> {
   await delay(400);
+  const { image, variants: rawVariants, ...fields } = input;
+  const variants = cleanVariants(rawVariants);
+  if (variants) fields.stock = variants.reduce((s, v) => s + v.stock, 0);
+  input = fields as ProductInput;
   if (id) {
     const p = db.products.find((x) => x.id === id && x.businessId === businessId);
     if (!p) throw new ServiceError("Product not found.");
     Object.assign(p, input, {
       status: input.stock === 0 && input.status === "active" ? "out_of_stock" : input.status,
     });
+    p.variants = variants;
+    if (image === null) p.image = undefined;
+    else if (image) p.image = image;
     return { ...p };
   }
   const biz = db.businesses.find((b) => b.id === businessId);
@@ -124,6 +149,8 @@ export async function saveProduct(
     sold: 0,
     imageColor: colors[count % colors.length],
     createdAt: new Date().toISOString(),
+    ...(image ? { image } : {}),
+    ...(variants ? { variants } : {}),
     status: input.stock === 0 && input.status === "active" ? "out_of_stock" : input.status,
   };
   db.products.unshift(product);

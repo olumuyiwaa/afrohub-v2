@@ -20,6 +20,7 @@ export default function StoreProductDetails({ productId }: { productId: string }
   const { openCartModal } = useCartModalContext();
   const cartItems = useAppSelector((s) => s.cartReducer.items);
   const [qty, setQty] = useState(1);
+  const [variantId, setVariantId] = useState<string | null>(null);
 
   if (!ctx?.store) return null;
   const { store, products, href } = ctx;
@@ -37,15 +38,31 @@ export default function StoreProductDetails({ productId }: { productId: string }
     );
   }
 
-  const stock = product.stock ?? Infinity;
+  const variants = product.variants ?? [];
+  const variant = variants.find((v) => v.id === variantId) ?? (variants.length ? variants.find((v) => v.stock > 0) ?? variants[0] : undefined);
+  const unitPrice = variant?.price ?? product.discountedPrice;
+  const stock = variant ? variant.stock : product.stock ?? Infinity;
   const soldOut = stock <= 0;
-  const inCart = cartItems.find((i) => i.id === product.id)?.quantity ?? 0;
+  const lineId = variant ? `${product.id}::${variant.id}` : product.id;
+  const inCart = cartItems.find((i) => i.id === lineId)?.quantity ?? 0;
   const room = Math.max(0, stock - inCart); // how many more can still be added
   const related = products.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
 
   const add = () => {
     if (room <= 0) return;
-    dispatch(addItemToCart({ ...product, quantity: Math.min(qty, room) }));
+    dispatch(
+      addItemToCart({
+        ...product,
+        id: lineId,
+        title: variant ? `${product.title} · ${variant.name}` : product.title,
+        price: unitPrice,
+        discountedPrice: unitPrice,
+        stock,
+        productId: variant ? String(product.id) : undefined,
+        variantId: variant?.id,
+        quantity: Math.min(qty, room),
+      })
+    );
   };
 
   const stepBtn = "flex h-12 w-12 items-center justify-center text-xl text-dark ease-out duration-200 disabled:opacity-35";
@@ -71,11 +88,38 @@ export default function StoreProductDetails({ productId }: { productId: string }
           <div className="max-w-[540px]">
             <h1 className="text-4xl font-bold leading-[1.05] text-dark sm:text-5xl">{product.title}</h1>
 
-            <p className="mt-5 font-display text-3xl font-semibold text-dark">${product.discountedPrice}</p>
+            <p className="mt-5 font-display text-3xl font-semibold text-dark">${unitPrice}</p>
 
             <p className="mt-3 text-custom-sm font-medium" style={{ color: soldOut ? "#b42318" : "var(--ink)" }}>
               {soldOut ? "Sold out" : stock <= 5 ? `Only ${stock} left` : "In stock"}
             </p>
+
+            {variants.length > 0 && (
+              <fieldset className="mt-6">
+                <legend className="mb-2.5 text-custom-sm font-medium text-dark">
+                  Choose an option{variant ? <span className="font-normal"> · {variant.name}</span> : null}
+                </legend>
+                <div className="flex flex-wrap gap-2.5">
+                  {variants.map((v) => {
+                    const out = v.stock <= 0;
+                    const on = variant?.id === v.id;
+                    return (
+                      <button
+                        key={v.id}
+                        type="button"
+                        aria-pressed={on}
+                        disabled={out}
+                        onClick={() => { setVariantId(v.id); setQty(1); }}
+                        className={`min-w-[3rem] rounded-full px-5 py-2.5 text-custom-sm font-medium ring-1 ring-inset duration-200 disabled:cursor-not-allowed disabled:line-through disabled:opacity-40 ${on ? "" : "bg-white text-dark hover:bg-[color:var(--tint)]"}`}
+                        style={on ? { background: "var(--brand)", color: "var(--brand-fg)", ["--tw-ring-color" as string]: "var(--brand)" } : { ["--tw-ring-color" as string]: "var(--line)" }}
+                      >
+                        {v.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            )}
 
             {product.description && <p className="mt-6 text-lg leading-relaxed">{product.description}</p>}
 

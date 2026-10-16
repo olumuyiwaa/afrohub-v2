@@ -96,6 +96,15 @@ export interface Invoice {
 
 export type ProductStatus = "active" | "draft" | "out_of_stock";
 
+export interface ProductVariant {
+  id: string;
+  /** What the shopper picks, e.g. "Large / Red". */
+  name: string;
+  /** Overrides the product price when set. */
+  price?: number;
+  stock: number;
+}
+
 export interface Product {
   id: string;
   businessId: string;
@@ -108,6 +117,10 @@ export interface Product {
   status: ProductStatus;
   sold: number;
   imageColor: string;
+  /** Uploaded photo as a (resized) data URL. */
+  image?: string;
+  /** When present, product.stock is the sum of the variants' stock. */
+  variants?: ProductVariant[];
   createdAt: string;
 }
 
@@ -125,6 +138,7 @@ export type PaymentMethod = "cod" | "bank" | "card";
 
 export interface OrderItem {
   productId: string;
+  variantId?: string;
   name: string;
   qty: number;
   price: number;

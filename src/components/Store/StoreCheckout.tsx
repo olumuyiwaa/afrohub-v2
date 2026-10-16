@@ -96,7 +96,7 @@ export default function StoreCheckout() {
         notes: f.notes,
         paymentMethod: payment,
         couponCode: coupon?.code,
-        items: items.map((i) => ({ productId: i.id, qty: i.quantity })),
+        items: items.map((i) => ({ productId: i.productId ?? i.id, variantId: i.variantId, qty: i.quantity })),
       });
       dispatch(removeAllItemsFromCart());
       ctx.reload(); // refresh stock levels shown in the store

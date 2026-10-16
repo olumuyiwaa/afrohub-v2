@@ -19,4 +19,6 @@ export type Product = {
   sku?: string;
   createdAt?: string;
   sold?: number;
+  // Variant pickers (e.g. size / colour). Present only for business products that have them.
+  variants?: { id: string; name: string; price?: number; stock: number }[];
 };

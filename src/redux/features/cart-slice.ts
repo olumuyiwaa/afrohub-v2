@@ -21,6 +21,9 @@ type CartItem = {
   storeId?: string;
   stock?: number;
   color?: string;
+  // For products with variants the line id is "<productId>::<variantId>"
+  productId?: string;
+  variantId?: string;
 };
 
 const initialState: InitialState = {
@@ -32,7 +35,7 @@ export const cart = createSlice({
   initialState,
   reducers: {
     addItemToCart: (state, action: PayloadAction<CartItem>) => {
-      const { id, title, price, quantity, discountedPrice, imgs, storeId, stock, color } =
+      const { id, title, price, quantity, discountedPrice, imgs, storeId, stock, color, productId, variantId } =
         action.payload;
 
       // switching to a different store: start a fresh cart
@@ -57,6 +60,8 @@ export const cart = createSlice({
           storeId,
           stock,
           color,
+          productId,
+          variantId,
         });
       }
     },

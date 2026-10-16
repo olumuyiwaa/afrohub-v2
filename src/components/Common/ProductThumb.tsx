@@ -25,6 +25,11 @@ const ProductThumb = ({
   className?: string;
 }) => {
   const src = variant === "thumbnail" ? item.imgs?.thumbnails?.[0] : item.imgs?.previews?.[0];
+  if (src?.startsWith("data:")) {
+    // uploaded photo stored inline: a plain <img> avoids the image optimiser
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt={item.title} className={`h-full w-full object-cover ${className}`} />;
+  }
   if (src) {
     return <Image src={src} alt={item.title} width={size} height={size} className={className} />;
   }

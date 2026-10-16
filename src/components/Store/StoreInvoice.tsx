@@ -92,7 +92,7 @@ export default function StoreInvoice({ orderId }: { orderId: string }) {
             </thead>
             <tbody>
               {order.items.map((i) => (
-                <tr key={i.productId} className="border-b border-[color:var(--line)] text-dark">
+                <tr key={`${i.productId}-${i.variantId ?? ""}`} className="border-b border-[color:var(--line)] text-dark">
                   <td className="py-3.5">{i.name}</td>
                   <td className="py-3.5 text-right">{i.qty}</td>
                   <td className="py-3.5 text-right">${i.price}</td>

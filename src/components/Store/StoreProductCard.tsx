@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import type { Product } from "@/types/product";
 import ProductThumb from "@/components/Common/ProductThumb";
@@ -11,14 +12,24 @@ import type { AppDispatch } from "@/redux/store";
 
 export default function StoreProductCard({ item }: { item: Product }) {
   const href = useStoreHref();
+  const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { openCartModal } = useCartModalContext();
   const soldOut = item.stock !== undefined && item.stock <= 0;
   const low = !soldOut && item.stock !== undefined && item.stock <= 5;
   const to = href(`/product/${item.id}`);
 
+  const hasVariants = !!item.variants?.length;
+  const prices = hasVariants ? item.variants!.map((v) => v.price ?? item.discountedPrice) : [item.discountedPrice];
+  const lowest = Math.min(...prices);
+  const varies = Math.max(...prices) !== lowest;
+
   const add = () => {
     if (soldOut) return;
+    if (hasVariants) {
+      router.push(to);
+      return;
+    }
     dispatch(addItemToCart({ ...item, quantity: 1 }));
     openCartModal();
   };
@@ -45,14 +56,14 @@ export default function StoreProductCard({ item }: { item: Product }) {
           type="button"
           onClick={add}
           disabled={soldOut}
-          aria-label={soldOut ? `${item.title} is sold out` : `Add ${item.title} to cart`}
+          aria-label={soldOut ? `${item.title} is sold out` : hasVariants ? `Choose options for ${item.title}` : `Add ${item.title} to cart`}
           className="absolute bottom-3 right-3 flex h-11 items-center gap-2 rounded-full px-4 text-custom-sm font-medium shadow-lg transition duration-200 disabled:hidden sm:translate-y-3 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:focus-visible:translate-y-0 sm:focus-visible:opacity-100"
           style={{ background: "var(--brand)", color: "var(--brand-fg)" }}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden>
             <path d="M12 5v14M5 12h14" />
           </svg>
-          Add
+          {hasVariants ? "Options" : "Add"}
         </button>
       </div>
 
@@ -65,7 +76,7 @@ export default function StoreProductCard({ item }: { item: Product }) {
           </h3>
           {item.category && <p className="mt-0.5 text-custom-sm">{item.category}</p>}
         </div>
-        <p className="font-display text-lg font-semibold text-dark">${item.discountedPrice}</p>
+        <p className="font-display text-lg font-semibold text-dark">{varies ? "From " : ""}${lowest}</p>
       </div>
     </article>
   );
