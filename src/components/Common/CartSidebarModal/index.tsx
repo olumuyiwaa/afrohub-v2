@@ -6,23 +6,23 @@ import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { addItemToCart, removeAllItemsFromCart, removeItemFromCart, selectTotalPrice } from "@/redux/features/cart-slice";
 import { useAppSelector, type AppDispatch } from "@/redux/store";
 import { useStoreHref, useStoreMoney } from "@/app/context/StoreContext";
+import { useOverlay } from "@/hooks/useOverlay";
+import { useConfirm } from "@/components/ui/confirm";
 import SingleItem, { type CartLine } from "./SingleItem";
 import EmptyCart from "./EmptyCart";
 
 const UNDO_MS = 6000;
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 const CartSidebarModal = () => {
   const { isCartModalOpen: open, closeCartModal } = useCartModalContext();
   const dispatch = useDispatch<AppDispatch>();
+  const confirm = useConfirm();
   const cartItems = useAppSelector((state) => state.cartReducer.items) as CartLine[];
   const totalPrice = useSelector(selectTotalPrice);
   const href = useStoreHref();
   const fmt = useStoreMoney();
 
   const panelRef = useRef<HTMLDivElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
-  const returnFocus = useRef<HTMLElement | null>(null);
   const [removed, setRemoved] = useState<CartLine | null>(null);
   const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -47,41 +47,8 @@ const CartSidebarModal = () => {
     clearUndo();
   };
 
-  // open: lock page scroll, move focus into the drawer; close: hand focus back
-  useEffect(() => {
-    if (!open) return;
-    returnFocus.current = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const t = setTimeout(() => closeRef.current?.focus(), 50);
-
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        closeCartModal();
-        return;
-      }
-      if (e.key !== "Tab" || !panelRef.current) return;
-      // keep Tab inside the drawer
-      const els = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
-      if (els.length === 0) return;
-      const first = els[0];
-      const last = els[els.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => {
-      clearTimeout(t);
-      document.body.style.overflow = prevOverflow;
-      document.removeEventListener("keydown", onKey);
-      returnFocus.current?.focus?.();
-    };
-  }, [open, closeCartModal]);
+  // Escape, Tab trap, scroll lock and focus in/out: shared with modals so stacked popups behave
+  useOverlay({ open, onClose: closeCartModal, panelRef });
 
   // forget the undo offer when the drawer closes
   useEffect(() => {
@@ -108,14 +75,14 @@ const CartSidebarModal = () => {
 
       <div
         ref={panelRef}
-        className={`absolute right-0 top-0 flex h-full w-full max-w-[460px] flex-col bg-white shadow-1 ease-out duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}
+        tabIndex={-1}
+        className={`outline-none absolute right-0 top-0 flex h-full w-full max-w-[460px] flex-col bg-white shadow-1 ease-out duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex items-center justify-between border-b border-gray-3 px-5 py-5 sm:px-7">
           <h2 id="cart-drawer-title" className="font-display text-xl font-bold text-dark sm:text-2xl">
             Your cart{count > 0 && <span className="ml-2 text-base font-medium text-dark-4">({count} {count === 1 ? "item" : "items"})</span>}
           </h2>
           <button
-            ref={closeRef}
             type="button"
             onClick={() => closeCartModal()}
             aria-label="Close cart"
@@ -138,7 +105,9 @@ const CartSidebarModal = () => {
               <div className="py-4 text-right">
                 <button
                   type="button"
-                  onClick={() => window.confirm("Remove everything from your cart?") && dispatch(removeAllItemsFromCart())}
+                  onClick={async () => {
+                    if (await confirm({ title: "Clear your cart?", message: "All items will be removed.", confirmLabel: "Clear cart", tone: "danger" })) dispatch(removeAllItemsFromCart());
+                  }}
                   className="text-custom-sm underline underline-offset-4 ease-out duration-200 hover:text-dark"
                 >
                   Clear cart

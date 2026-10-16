@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "@/components/ui/confirm";
 import { formatCurrency } from "@/lib/money";
 import { useState } from "react";
 import Link from "next/link";
@@ -14,6 +15,7 @@ import type { BusinessStatus } from "@/types/saas";
 
 export default function BusinessDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const confirm = useConfirm();
   const { data, loading, error, reload } = useAsync(() => getBusinessDetail(id), [id]);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -22,8 +24,8 @@ export default function BusinessDetailPage() {
   if (error || !data) return <ErrorNote message={error ?? "Business not found."} onRetry={reload} />;
   const { business: b, plan, subscription, invoices, team } = data;
 
-  const change = async (status: BusinessStatus, confirmMsg?: string) => {
-    if (confirmMsg && !window.confirm(confirmMsg)) return;
+  const change = async (status: BusinessStatus, ask?: Parameters<typeof confirm>[0]) => {
+    if (ask && !(await confirm(ask))) return;
     setBusy(true);
     setActionError(null);
     try {
@@ -58,10 +60,10 @@ export default function BusinessDetailPage() {
           )}
           {b.status === "suspended" && <PrimaryButton busy={busy} onClick={() => change("active")}>Reinstate</PrimaryButton>}
           {(b.status === "active" || b.status === "trial") && (
-            <OutlineButton disabled={busy} onClick={() => change("suspended", `Suspend ${b.name}? Their admins will be unable to sign in.`)}>Suspend</OutlineButton>
+            <OutlineButton disabled={busy} onClick={() => change("suspended", { title: `Suspend ${b.name}?`, message: "Their admins will be unable to sign in and their store goes offline.", confirmLabel: "Suspend", tone: "danger" })}>Suspend</OutlineButton>
           )}
           {b.status !== "cancelled" && (
-            <DangerButton disabled={busy} onClick={() => change("cancelled", `Cancel ${b.name}'s subscription?`)}>Cancel subscription</DangerButton>
+            <DangerButton disabled={busy} onClick={() => change("cancelled", { title: `Cancel ${b.name}'s subscription?`, message: "Their store goes offline.", confirmLabel: "Cancel subscription", tone: "danger" })}>Cancel subscription</DangerButton>
           )}
         </div>
       </div>

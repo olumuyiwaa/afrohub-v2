@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "@/components/ui/confirm";
 import { useState } from "react";
 import { useBizCurrency, useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
@@ -23,6 +24,7 @@ const toDraft = (v?: ProductVariant): DraftVariant => ({
 
 export default function ProductsPage() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   const fmt = useBizMoney();
   const currency = useBizCurrency();
   const bid = user!.businessId!;
@@ -67,7 +69,7 @@ export default function ProductsPage() {
     setDrafts((d) => d.map((v) => (v.key === key ? { ...v, ...patch } : v)));
 
   const remove = async (p: Product) => {
-    if (!window.confirm(`Delete "${p.name}"? This cannot be undone.`)) return;
+    if (!(await confirm({ title: `Delete "${p.name}"?`, message: "This can't be undone.", confirmLabel: "Delete product", tone: "danger" }))) return;
     setRowError(null);
     try {
       await deleteProduct(bid, p.id);

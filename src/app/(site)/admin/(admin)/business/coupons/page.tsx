@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "@/components/ui/confirm";
 import { useState } from "react";
 import { useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
@@ -20,6 +21,7 @@ const effective = (c: Coupon): string =>
 
 export default function CouponsPage() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   const fmt = useBizMoney();
   const bid = user!.businessId!;
   const { data, loading, error, reload } = useAsync(() => listCoupons(bid), [bid]);
@@ -51,7 +53,7 @@ export default function CouponsPage() {
           <button className="text-gray-600 hover:text-gray-800" onClick={() => run(() => setCouponStatus(bid, c.id, c.status === "active" ? "disabled" : "active"))}>
             {c.status === "active" ? "Disable" : "Enable"}
           </button>
-          <button className="text-error-600 hover:text-error-700" onClick={() => window.confirm(`Delete ${c.code}?`) && run(() => deleteCoupon(bid, c.id))}>Delete</button>
+          <button className="text-error-600 hover:text-error-700" onClick={async () => { if (await confirm({ title: `Delete ${c.code}?`, message: "Customers will no longer be able to use this code.", confirmLabel: "Delete code", tone: "danger" })) run(() => deleteCoupon(bid, c.id)); }}>Delete</button>
         </div>
       ),
     },

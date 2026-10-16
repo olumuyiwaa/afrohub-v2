@@ -19,6 +19,7 @@ import PreviewSliderModal from "@/components/Common/PreviewSlider";
 import { StoreProvider } from "../context/StoreContext";
 import ScrollToTop from "@/components/Common/ScrollToTop";
 import PreLoader from "@/components/Common/PreLoader";
+import { ConfirmProvider } from "@/components/ui/confirm";
 
 const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display", display: "swap" });
 
@@ -44,6 +45,7 @@ export default function RootLayout({
   return (
       <html lang="en" suppressHydrationWarning={true}>
       <body className={display.variable}>
+      <ConfirmProvider>
       {loading ? (
           <PreLoader />
       ) : skipShell ? (
@@ -69,6 +71,7 @@ export default function RootLayout({
             </StoreProvider>
           </ReduxProvider>
       )}
+      </ConfirmProvider>
       </body>
       </html>
   );

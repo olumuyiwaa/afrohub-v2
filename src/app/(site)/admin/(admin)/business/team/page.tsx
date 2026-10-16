@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "@/components/ui/confirm";
 import { useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
@@ -13,6 +14,7 @@ import type { TeamMember } from "@/types/saas";
 
 export default function TeamPage() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   const bid = user!.businessId!;
   const { data, loading, error, reload } = useAsync(() => listTeam(bid), [bid]);
   const [open, setOpen] = useState(false);
@@ -24,7 +26,7 @@ export default function TeamPage() {
   if (error || !data) return <ErrorNote message={error ?? "Could not load team."} onRetry={reload} />;
 
   const remove = async (m: TeamMember) => {
-    if (!window.confirm(`Remove ${m.name} from your team?`)) return;
+    if (!(await confirm({ title: `Remove ${m.name}?`, message: "They will lose access to your store admin straight away.", confirmLabel: "Remove", tone: "danger" }))) return;
     setRowError(null);
     try {
       await removeTeamMember(bid, m.id);

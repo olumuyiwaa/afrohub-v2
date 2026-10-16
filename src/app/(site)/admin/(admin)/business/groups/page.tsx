@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "@/components/ui/confirm";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
@@ -12,6 +13,7 @@ import type { GroupRuleType } from "@/types/saas";
 
 export default function GroupsPage() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   const bid = user!.businessId!;
   const fmt = useBizMoney();
   const currency = useBizCurrency();
@@ -80,7 +82,7 @@ export default function GroupsPage() {
   };
 
   const remove = async (g: GroupWithCount) => {
-    if (!window.confirm(`Delete the group "${g.name}"? Customers are not deleted.`)) return;
+    if (!(await confirm({ title: `Delete the group "${g.name}"?`, message: "The customers in it are not deleted.", confirmLabel: "Delete group", tone: "danger" }))) return;
     await deleteGroup(bid, g.id);
     reload();
   };

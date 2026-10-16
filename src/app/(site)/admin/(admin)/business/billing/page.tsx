@@ -1,4 +1,5 @@
 "use client";
+import { useConfirm } from "@/components/ui/confirm";
 import { useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
@@ -12,6 +13,7 @@ import { planAmount, planPriceLabel, useCurrency } from "@/lib/currency";
 
 export default function BillingPage() {
   const { user } = useAuth();
+  const confirm = useConfirm();
   const bid = user!.businessId!;
   const { data, loading, error, reload } = useAsync(() => getBilling(bid), [bid]);
   const [cycle, setCycle] = useState<"monthly" | "yearly">("monthly");
@@ -25,7 +27,7 @@ export default function BillingPage() {
   const { plan, subscription, usage, invoices, plans } = data;
 
   const choose = async (planId: string, name: string) => {
-    if (!window.confirm(`Switch to the ${name} plan (${cycle})?`)) return;
+    if (!(await confirm({ title: `Switch to the ${name} plan?`, message: `You'll be on the ${name} plan, billed ${cycle}.`, confirmLabel: "Switch plan" }))) return;
     setBusyPlan(planId);
     setActionError(null);
     setNotice(null);
