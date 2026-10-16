@@ -1,4 +1,5 @@
 "use client";
+import StoreLogo from "./StoreLogo";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useStore } from "@/app/context/StoreContext";
@@ -51,6 +52,7 @@ export default function StoreInvoice({ orderId }: { orderId: string }) {
         <article className="mx-auto max-w-[780px] rounded-3xl bg-white p-6 ring-1 ring-inset ring-[color:var(--line)] sm:p-12 print:rounded-none print:p-0 print:ring-0" aria-label={`Invoice ${docNo}`}>
           <header className="flex flex-wrap items-start justify-between gap-6 border-b border-[color:var(--line)] pb-8">
             <div>
+              {store.logo && <div className="mb-3"><StoreLogo name={store.name} logo={store.logo} size={56} /></div>}
               <p className="font-display text-2xl font-bold text-dark">{store.name}</p>
               <p className="mt-1 text-custom-sm">{store.city}, {store.country}{store.phone ? ` · ${store.phone}` : ""}</p>
             </div>

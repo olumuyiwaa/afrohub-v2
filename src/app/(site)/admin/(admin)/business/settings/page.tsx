@@ -8,6 +8,7 @@ import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas
 import { storePath, useStoreUrl } from "@/lib/store";
 import { CURRENCIES } from "@/lib/money";
 import { setBizCurrency } from "@/hooks/useBizMoney";
+import { fileToDataUrl } from "@/lib/image";
 import type { Currency } from "@/types/saas";
 
 const CATEGORIES = ["Fashion & Textiles", "Food & Groceries", "Beauty & Wellness", "Crafts & Decor", "Coffee & Tea", "Jewellery", "Other"];
@@ -23,6 +24,8 @@ export default function StoreSettingsPage() {
   const url = useStoreUrl(data?.slug);
   const [curSaving, setCurSaving] = useState(false);
   const [curSaved, setCurSaved] = useState(false);
+  const [logoBusy, setLogoBusy] = useState(false);
+  const [logoError, setLogoError] = useState<string | null>(null);
 
   if (loading) return <PageLoading />;
   if (error || !data) return <ErrorNote message={error ?? "Could not load settings."} onRetry={reload} />;
@@ -50,6 +53,21 @@ export default function StoreSettingsPage() {
       setFormError(err instanceof Error ? err.message : "Could not save settings.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const changeLogo = async (file: File | null) => {
+    setLogoError(null);
+    setLogoBusy(true);
+    try {
+      // keep transparency (PNG) and shrink so it fits in the demo database
+      const logo = file ? await fileToDataUrl(file, 360, 0.9, { png: true }) : null;
+      await updateBusinessProfile(bid, { logo });
+      reload();
+    } catch (err) {
+      setLogoError(err instanceof Error ? err.message : "Could not update your logo.");
+    } finally {
+      setLogoBusy(false);
     }
   };
 
@@ -105,6 +123,47 @@ export default function StoreSettingsPage() {
               Your store is currently offline ({data.status}). It goes live once your account is active.
             </p>
           )}
+        </div>
+      </Card>
+      <Card className="mb-6 max-w-3xl">
+        <CardHeader title="Logo" subtitle="Shown in your storefront header and on invoices and receipts." />
+        <div className="space-y-3 p-5 sm:p-6">
+          <div className="flex flex-wrap items-center gap-5">
+            <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-white/5">
+              {data.logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={data.logo} alt={`${data.name} logo`} className="h-full w-full object-contain p-2" />
+              ) : (
+                <span className="flex h-14 w-14 items-center justify-center rounded-full text-2xl font-bold text-white" style={{ background: data.brandColor }} aria-hidden>
+                  {data.name.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </div>
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <label className={`inline-flex cursor-pointer items-center rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:text-gray-400 dark:ring-gray-700 ${logoBusy ? "pointer-events-none opacity-60" : ""}`}>
+                  {logoBusy ? "Saving…" : data.logo ? "Replace logo" : "Upload logo"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    aria-label="Business logo"
+                    className="sr-only"
+                    disabled={logoBusy}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null;
+                      e.target.value = "";
+                      if (file) changeLogo(file);
+                    }}
+                  />
+                </label>
+                {data.logo && !logoBusy && (
+                  <button type="button" onClick={() => changeLogo(null)} className="text-sm font-medium text-error-600 hover:text-error-700">Remove</button>
+                )}
+              </div>
+              <p className="text-theme-xs text-gray-500">A square image on a plain or transparent background works best. Without a logo, your store shows its first letter in your brand colour.</p>
+            </div>
+          </div>
+          {logoError && <ErrorNote message={logoError} />}
         </div>
       </Card>
       <Card className="mb-6 max-w-3xl">

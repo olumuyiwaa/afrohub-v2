@@ -17,6 +17,7 @@ const toPublic = (b: (typeof db.businesses)[number]): PublicStore => ({
   city: b.city,
   country: b.country,
   brandColor: b.brandColor,
+  ...(b.logo ? { logo: b.logo } : {}),
   currency: b.currency,
 });
 

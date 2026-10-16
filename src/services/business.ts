@@ -551,12 +551,18 @@ export async function getBusinessProfile(businessId: string): Promise<Business> 
 
 export async function updateBusinessProfile(
   businessId: string,
-  patch: Partial<Pick<Business, "name" | "description" | "phone" | "country" | "city" | "brandColor" | "category" | "currency">>
+  patch: Partial<Pick<Business, "name" | "description" | "phone" | "country" | "city" | "brandColor" | "category" | "currency">> & {
+    /** data URL to set, null to remove, undefined to leave unchanged */
+    logo?: string | null;
+  }
 ): Promise<Business> {
   await delay(450);
   const biz = db.businesses.find((b) => b.id === businessId);
   if (!biz) throw new ServiceError("Business not found.");
-  Object.assign(biz, patch);
+  const { logo, ...rest } = patch;
+  Object.assign(biz, rest);
+  if (logo === null) biz.logo = undefined;
+  else if (logo) biz.logo = logo;
   return { ...biz };
 }
 

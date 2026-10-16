@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
+import StoreLogo from "./StoreLogo";
 import { useStore } from "@/app/context/StoreContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { useAppSelector } from "@/redux/store";
@@ -83,13 +84,7 @@ export default function StoreHeader() {
           </button>
 
           <Link href={href("/")} className="flex items-center gap-2.5 text-dark" aria-label={`${store.name} home`}>
-            <span
-              className="flex h-9 w-9 items-center justify-center rounded-full text-base font-bold font-display"
-              style={{ background: "var(--brand)", color: "var(--brand-fg)" }}
-              aria-hidden
-            >
-              {store.name.charAt(0).toUpperCase()}
-            </span>
+            <StoreLogo name={store.name} logo={store.logo} />
             <span className="font-display text-xl font-bold tracking-tight">{store.name}</span>
           </Link>
 

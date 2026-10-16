@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import StoreCrumbs from "./StoreCrumbs";
 import StoreProductCard from "./StoreProductCard";
-import ProductThumb from "@/components/Common/ProductThumb";
+import StoreGallery from "./StoreGallery";
 import { useStore } from "@/app/context/StoreContext";
 import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
 import { addItemToCart } from "@/redux/features/cart-slice";
@@ -80,9 +80,7 @@ export default function StoreProductDetails({ productId }: { productId: string }
 
         <div className="mt-8 grid gap-10 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <div className="mx-auto aspect-[4/5] w-full max-w-[560px] overflow-hidden rounded-3xl">
-              <ProductThumb item={product} size={560} />
-            </div>
+            <StoreGallery key={String(product.id)} title={product.title} images={product.imgs?.previews ?? []} color={product.color} />
           </div>
 
           <div className="max-w-[540px]">

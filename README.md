@@ -19,7 +19,7 @@ A multi-tenant SaaS platform that lets small African businesses subscribe, get t
 
 **Super admin:** platform overview (MRR, churn, sign-ups, alerts); business approvals, suspend/reactivate; plans editor; subscriptions; invoices.
 
-**Storefront:** each business gets a store themed from its brand colour (home, shop, product, cart, checkout, order confirmation, printable invoice/receipt). Only `active` and `trial` businesses are live; suspended or pending ones show an unavailable page.
+**Storefront:** each business gets a store themed from its brand colour and showing its own logo, with a photo gallery on every product page (home, shop, product, cart, checkout, order confirmation, printable invoice/receipt). Only `active` and `trial` businesses are live; suspended or pending ones show an unavailable page.
 
 **Pricing:** a free Basic plan plus Starter, Growth and Scale. Prices display in NGN, GHS, KES or USD via a currency switcher; platform accounting (MRR, invoices) stays in USD.
 
