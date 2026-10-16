@@ -1,26 +1,13 @@
 <svg width="160" height="40" viewBox="0 0 160 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <!-- Map Pin with Africa -->
-    <g transform="translate(0, 2)">
-        <!-- Pin base -->
-        <ellipse cx="18" cy="34" rx="6" ry="2" fill="#3C50E0" opacity="0.3"/>
-        <!-- Pin body -->
-        <path d="M18 2C11.5 2 6 7.5 6 14C6 22 18 34 18 34C18 34 30 22 30 14C30 7.5 24.5 2 18 2Z"
-              fill="#3C50E0" opacity="0.15"/>
-        <path d="M18 5C12.5 5 8 9.5 8 15C8 21 18 30 18 30C18 30 28 21 28 15C28 9.5 23.5 5 18 5Z"
-              fill="#3C50E0" opacity="0.3"/>
-        <!-- Africa continent inside pin -->
-        <path d="M15 10C14 10.5 13 11.5 12.5 13C12 14.5 12 16 12.5 17.5C13 19 14 20 15.5 20.5C17 21 18.5 20.5 19.5 19.5C20.5 18.5 21 17 21 15.5C21 14 20.5 12.5 19.5 11.5C18.5 10.5 16.5 9.5 15 10Z"
-              fill="#3C50E0"/>
-        <ellipse cx="21.5" cy="15" rx="1" ry="2.5" fill="#3C50E0" opacity="0.8"/>
+    <!-- Mark: the Retailr bag (same artwork as the favicon) -->
+    <g transform="translate(0 2) scale(0.0938)">
+        <path d="M137.5 125V98.5a52.5 52.5 0 0 1 105 0V125" stroke="#3C50E0" stroke-width="26"/>
+        <path d="M112 110H272Q310 110 316 148L343 296Q350 346 298 346H86Q34 346 41 296L68 148Q74 110 112 110Z" fill="#3C50E0"/>
+        <path d="M142 252C158 300 226 300 242 252" stroke="#fff" stroke-width="22" stroke-linecap="round"/>
     </g>
 
     <!-- Retailr Text -->
-    <text x="36" y="26" font-family="'Inter', 'Segoe UI', sans-serif" font-size="22" font-weight="700" fill="#1C274C" letter-spacing="0.5">
+    <text x="44" y="27" font-family="'Inter', 'Segoe UI', sans-serif" font-size="24" font-weight="700" fill="#1C274C" letter-spacing="0.3">
         Retail<tspan fill="#3C50E0">r</tspan>
-    </text>
-
-    <!-- Tagline -->
-    <text x="36" y="36" font-family="'Inter', 'Segoe UI', sans-serif" font-size="9" font-weight="500" fill="#98A2B3" letter-spacing="1.2">
-        CONNECTING AFRICA
     </text>
 </svg>
