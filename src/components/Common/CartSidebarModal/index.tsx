@@ -1,125 +1,192 @@
 "use client";
-import React, { useEffect, useState } from "react";
-
-import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
-import {
-  removeItemFromCart,
-  selectTotalPrice,
-} from "@/redux/features/cart-slice";
-import { useAppSelector } from "@/redux/store";
-import { useSelector } from "react-redux";
-import SingleItem from "./SingleItem";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import EmptyCart from "./EmptyCart";
+import { useDispatch, useSelector } from "react-redux";
+import { useCartModalContext } from "@/app/context/CartSidebarModalContext";
+import { addItemToCart, removeAllItemsFromCart, removeItemFromCart, selectTotalPrice } from "@/redux/features/cart-slice";
+import { useAppSelector, type AppDispatch } from "@/redux/store";
 import { useStoreHref, useStoreMoney } from "@/app/context/StoreContext";
+import SingleItem, { type CartLine } from "./SingleItem";
+import EmptyCart from "./EmptyCart";
+
+const UNDO_MS = 6000;
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 const CartSidebarModal = () => {
-  const { isCartModalOpen, closeCartModal } = useCartModalContext();
-  const cartItems = useAppSelector((state) => state.cartReducer.items);
-
+  const { isCartModalOpen: open, closeCartModal } = useCartModalContext();
+  const dispatch = useDispatch<AppDispatch>();
+  const cartItems = useAppSelector((state) => state.cartReducer.items) as CartLine[];
   const totalPrice = useSelector(selectTotalPrice);
   const href = useStoreHref();
   const fmt = useStoreMoney();
 
+  const panelRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
+  const [removed, setRemoved] = useState<CartLine | null>(null);
+  const undoTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const count = cartItems.reduce((n, i) => n + i.quantity, 0);
+
+  const clearUndo = useCallback(() => {
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    undoTimer.current = null;
+    setRemoved(null);
+  }, []);
+
+  const onRemove = (item: CartLine) => {
+    dispatch(removeItemFromCart(item.id));
+    setRemoved(item);
+    if (undoTimer.current) clearTimeout(undoTimer.current);
+    undoTimer.current = setTimeout(() => setRemoved(null), UNDO_MS);
+  };
+
+  const undo = () => {
+    if (!removed) return;
+    dispatch(addItemToCart({ ...removed }));
+    clearUndo();
+  };
+
+  // open: lock page scroll, move focus into the drawer; close: hand focus back
   useEffect(() => {
-    // closing modal while clicking outside
-    function handleClickOutside(event) {
-      if (!event.target.closest(".modal-content")) {
+    if (!open) return;
+    returnFocus.current = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const t = setTimeout(() => closeRef.current?.focus(), 50);
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
         closeCartModal();
+        return;
       }
-    }
-
-    if (isCartModalOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      if (e.key !== "Tab" || !panelRef.current) return;
+      // keep Tab inside the drawer
+      const els = Array.from(panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE));
+      if (els.length === 0) return;
+      const first = els[0];
+      const last = els[els.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-  }, [isCartModalOpen, closeCartModal]);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      clearTimeout(t);
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKey);
+      returnFocus.current?.focus?.();
+    };
+  }, [open, closeCartModal]);
+
+  // forget the undo offer when the drawer closes
+  useEffect(() => {
+    if (!open) clearUndo();
+  }, [open, clearUndo]);
+  useEffect(() => () => { if (undoTimer.current) clearTimeout(undoTimer.current); }, []);
+
+  const accent = { background: "var(--brand, #3c50e0)", color: "var(--brand-fg, #fff)" } as React.CSSProperties;
 
   return (
     <div
-      className={`fixed top-0 left-0 z-99999 overflow-y-auto no-scrollbar w-full h-screen bg-dark/70 ease-linear duration-300 ${
-        isCartModalOpen ? "translate-x-0" : "translate-x-full"
-      }`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cart-drawer-title"
+      aria-hidden={!open}
+      inert={!open}
+      className={`fixed inset-0 z-99999 ${open ? "visible" : "invisible [transition:visibility_0s_linear_.3s]"}`}
     >
-      <div className="flex items-center justify-end">
-        <div className="w-full max-w-[500px] shadow-1 bg-white px-4 sm:px-7.5 lg:px-11 relative modal-content">
-          <div className="sticky top-0 bg-white flex items-center justify-between pb-7 pt-4 sm:pt-7.5 lg:pt-11 border-b border-gray-3 mb-7.5">
-            <h2 className="font-medium text-dark text-lg sm:text-2xl">
-              Cart View
-            </h2>
-            <button
-              onClick={() => closeCartModal()}
-              aria-label="button for close modal"
-              className="flex items-center justify-center ease-in duration-150 bg-meta text-dark-5 hover:text-dark"
-            >
-              <svg
-                className="fill-current"
-                width="30"
-                height="30"
-                viewBox="0 0 30 30"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12.5379 11.2121C12.1718 10.846 11.5782 10.846 11.212 11.2121C10.8459 11.5782 10.8459 12.1718 11.212 12.5379L13.6741 15L11.2121 17.4621C10.846 17.8282 10.846 18.4218 11.2121 18.7879C11.5782 19.154 12.1718 19.154 12.5379 18.7879L15 16.3258L17.462 18.7879C17.8281 19.154 18.4217 19.154 18.7878 18.7879C19.154 18.4218 19.154 17.8282 18.7878 17.462L16.3258 15L18.7879 12.5379C19.154 12.1718 19.154 11.5782 18.7879 11.2121C18.4218 10.846 17.8282 10.846 17.462 11.2121L15 13.6742L12.5379 11.2121Z"
-                  fill=""
-                />
-                <path
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M15 1.5625C7.57867 1.5625 1.5625 7.57867 1.5625 15C1.5625 22.4213 7.57867 28.4375 15 28.4375C22.4213 28.4375 28.4375 22.4213 28.4375 15C28.4375 7.57867 22.4213 1.5625 15 1.5625ZM3.4375 15C3.4375 8.61421 8.61421 3.4375 15 3.4375C21.3858 3.4375 26.5625 8.61421 26.5625 15C26.5625 21.3858 21.3858 26.5625 15 26.5625C8.61421 26.5625 3.4375 21.3858 3.4375 15Z"
-                  fill=""
-                />
-              </svg>
-            </button>
-          </div>
+      <div
+        onClick={() => closeCartModal()}
+        aria-hidden
+        className={`absolute inset-0 bg-dark/60 backdrop-blur-[2px] ease-out duration-300 ${open ? "opacity-100" : "opacity-0"}`}
+      />
 
-          <div className="h-[66vh] overflow-y-auto no-scrollbar">
-            <div className="flex flex-col gap-6">
-              {/* <!-- cart item --> */}
-              {cartItems.length > 0 ? (
-                cartItems.map((item, key) => (
-                  <SingleItem
-                    key={key}
-                    item={item}
-                    removeItemFromCart={removeItemFromCart}
-                  />
-                ))
-              ) : (
-                <EmptyCart />
-              )}
+      <div
+        ref={panelRef}
+        className={`absolute right-0 top-0 flex h-full w-full max-w-[460px] flex-col bg-white shadow-1 ease-out duration-300 ${open ? "translate-x-0" : "translate-x-full"}`}
+      >
+        <div className="flex items-center justify-between border-b border-gray-3 px-5 py-5 sm:px-7">
+          <h2 id="cart-drawer-title" className="font-display text-xl font-bold text-dark sm:text-2xl">
+            Your cart{count > 0 && <span className="ml-2 text-base font-medium text-dark-4">({count} {count === 1 ? "item" : "items"})</span>}
+          </h2>
+          <button
+            ref={closeRef}
+            type="button"
+            onClick={() => closeCartModal()}
+            aria-label="Close cart"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-dark-5 ease-in duration-150 hover:bg-gray-2 hover:text-dark"
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden>
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 sm:px-7">
+          {cartItems.length > 0 ? (
+            <>
+              <ul className="divide-y divide-gray-3">
+                {cartItems.map((item) => (
+                  <SingleItem key={item.id} item={item} onRemove={onRemove} />
+                ))}
+              </ul>
+              <div className="py-4 text-right">
+                <button
+                  type="button"
+                  onClick={() => window.confirm("Remove everything from your cart?") && dispatch(removeAllItemsFromCart())}
+                  className="text-custom-sm underline underline-offset-4 ease-out duration-200 hover:text-dark"
+                >
+                  Clear cart
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="py-12">
+              <EmptyCart />
             </div>
+          )}
+        </div>
+
+        {removed && (
+          <div role="status" className="mx-5 mb-3 flex items-center justify-between gap-3 rounded-xl bg-dark px-4 py-3 text-custom-sm text-white sm:mx-7">
+            <span className="min-w-0 truncate">Removed {removed.title}</span>
+            <button type="button" onClick={undo} className="shrink-0 font-medium underline underline-offset-4">Undo</button>
           </div>
+        )}
 
-          <div className="border-t border-gray-3 bg-white pt-5 pb-4 sm:pb-7.5 lg:pb-11 mt-7.5 sticky bottom-0">
-            <div className="flex items-center justify-between gap-5 mb-6">
-              <p className="font-medium text-xl text-dark">Subtotal:</p>
-
-              <p className="font-medium text-xl text-dark">{fmt(totalPrice)}</p>
+        {cartItems.length > 0 && (
+          <div className="border-t border-gray-3 bg-white px-5 pb-5 pt-5 sm:px-7 sm:pb-7">
+            <div className="flex items-center justify-between gap-5">
+              <p className="font-medium text-dark">Subtotal</p>
+              <p className="font-display text-2xl font-bold text-dark">{fmt(totalPrice)}</p>
             </div>
+            <p className="mb-5 mt-1 text-custom-xs">Delivery and any discount code are handled at checkout.</p>
 
-            <div className="flex items-center gap-4">
-              <Link
-                onClick={() => closeCartModal()}
-                href={href("/cart")}
-                className="w-full flex justify-center font-medium text-white bg-blue py-[13px] px-6 rounded-full ease-out duration-200 hover:bg-blue-dark"
-              >
-                View Cart
-              </Link>
-
+            <div className="flex flex-col gap-3">
               <Link
                 onClick={() => closeCartModal()}
                 href={href("/checkout")}
-                className="w-full flex justify-center font-medium text-white bg-dark py-[13px] px-6 rounded-full ease-out duration-200 hover:bg-opacity-95"
+                style={accent}
+                className="flex w-full justify-center rounded-full px-6 py-[13px] font-medium ease-out duration-200 hover:opacity-90"
               >
-                Checkout
+                Checkout · {fmt(totalPrice)}
               </Link>
+              <div className="flex items-center justify-between gap-4 text-custom-sm">
+                <Link onClick={() => closeCartModal()} href={href("/cart")} className="font-medium text-dark underline underline-offset-4">
+                  View full cart
+                </Link>
+                <button type="button" onClick={() => closeCartModal()} className="underline underline-offset-4 ease-out duration-200 hover:text-dark">
+                  Continue shopping
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
