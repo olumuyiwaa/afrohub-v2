@@ -1,30 +1,102 @@
-# Free eCommerce Template for Next.js - NextMerce
+# AfroHub
 
-The free Next.js eCommerce template is a lite version of the NextMerce Next.js eCommerce boilerplate, designed to streamline the launch and management of your online store.
+A multi-tenant SaaS platform that lets small African businesses subscribe, get their own online storefront and run it from a simple admin. Think Bumpa-style commerce for sellers: products, orders, customers, discounts, invoices and billing, with local-currency pricing.
 
-![NextMerce](https://github.com/user-attachments/assets/57155689-a756-4222-8af7-134e556acae2)
+> **Status:** frontend prototype. All data is mocked in the browser (no backend yet), so the whole product can be explored and demoed end to end. A NestJS + Prisma API is planned next.
 
+## What's in it
 
-While NextMerce Pro features advanced functionalities, seamless integration, and customizable options, providing all the essential tools needed to build and expand your business, the lite version offers a basic Next.js template specifically crafted for eCommerce websites. Both versions ensure superior performance and flexibility, all powered by Next.js.
+**Three surfaces**
 
-### NextMerce Free VS NextMerce Pro
+| Surface | URL | Who |
+| --- | --- | --- |
+| Marketing + sign-up | `/`, `/get-started` | Prospective businesses |
+| Business admin | `/admin/business/*` | Store owners and staff |
+| Super admin | `/admin/super/*` | The AfroHub team |
+| Public storefront | `/s/<slug>` | Shoppers |
 
-| ✨ Features                         | 🎁 NextMerce Free                 | 🔥 NextMerce Pro                        |
-|----------------------------------|--------------------------------|--------------------------------------|
-| Next.js Pages                    | Static                         | Dynamic Boilerplate Template         |
-| Components                       | Limited                        | All According to Demo                |
-| eCommerce Functionality          | Included                       | Included                             |
-| Integrations (DB, Auth, etc.)    | Not Included                   | Included                             |
-| Community Support                | Included                       | Included                             |
-| Premium Email Support            | Not Included                   | Included                             |
-| Lifetime Free Updates            | Included                       | Included                             |
+**Business admin:** dashboard with setup checklist, KPIs and needs-attention panel; products; orders (status updates, invoice link, send receipt); customers; discounts and coupons; team; billing and plan changes; store settings.
 
+**Super admin:** platform overview (MRR, churn, sign-ups, alerts); business approvals, suspend/reactivate; plans editor; subscriptions; invoices.
 
-#### [🚀 Live Demo](https://demo.nextmerce.com/)
+**Storefront:** each business gets a store themed from its brand colour (home, shop, product, cart, checkout, order confirmation, printable invoice/receipt). Only `active` and `trial` businesses are live; suspended or pending ones show an unavailable page.
 
-#### [🌐 Visit Website](https://nextmerce.com/)
+**Pricing:** a free Basic plan plus Starter, Growth and Scale. Prices display in NGN, GHS, KES or USD via a currency switcher; platform accounting (MRR, invoices) stays in USD.
 
-## Update Logs
+**Discounts:** percent or fixed coupons with minimum order, max uses and expiry, validated again when the order is placed.
 
-Version 0.1.2 - [Mar 16, 2026]
-- Update Next.js, React, and React DOM dependencies, add baseline-browser-mapping
+## Tech stack
+
+- Next.js 16 (App Router, Turbopack) and React 19
+- TypeScript, Tailwind CSS 3
+- Redux Toolkit (storefront cart, persisted in localStorage)
+- ApexCharts for dashboards
+- Built on the NextMerce free template and the TailAdmin design tokens
+
+## Getting started
+
+```bash
+npm install
+npm run dev
+```
+
+Open http://localhost:3000. Production build: `npm run build && npm start`.
+
+Requires Node 18.18+ (Node 20+ recommended).
+
+### Demo accounts
+
+Go to `/admin/login` and pick an account (password for all: `demo1234`).
+
+| Role | Email |
+| --- | --- |
+| Super admin | `admin@afrohub.com` |
+| Business admin (Adire Hub, Growth plan) | `amara@adirehub.com` |
+| Business admin (Kente & Co, Scale plan) | `kwame@kenteandco.com` |
+
+Try a storefront at `/s/adire-hub` or `/s/kente-co`. Coupon codes to try at checkout: `WELCOME10`, `SAVE5` (minimum $50).
+
+Demo data lives in your browser's localStorage (`afrohub:db:v2`). The login page has a reset option, or clear site data to start fresh.
+
+## Project structure
+
+```
+src/
+  app/(site)/
+    page.tsx              marketing landing + pricing
+    get-started/          business sign-up
+    s/[slug]/…            public storefront routes
+    admin/login           sign-in
+    admin/(admin)/
+      super/…             super admin pages
+      business/…          business admin pages
+  components/
+    saas/                 admin UI kit (cards, tables, dashboard widgets, pricing)
+    Store/                storefront components
+  services/               async "API" layer over the mock database
+  mock/seed.ts            deterministic seed data
+  types/saas.ts           shared domain types
+  lib/                    currency, formatting, store theming
+  redux/                  cart state
+```
+
+### How the mock backend works
+
+UI code never touches data directly. It calls typed async functions in `src/services/` (`auth`, `platform`, `business`, `store`), which read and write an in-memory database seeded from `src/mock/seed.ts` and mirrored to localStorage, with artificial latency. Every business-admin call is scoped by `businessId`, mirroring how the real API will authorise requests. To go live, replace the bodies of these functions with HTTP calls; the components should not need to change.
+
+## Roadmap
+
+- [x] Storefronts, admin dashboards, plans and subscriptions
+- [x] Free plan and local-currency pricing
+- [x] Discounts and coupons
+- [x] Invoices and receipts
+- [ ] Product variants and photo upload
+- [ ] Customer groups and messaging
+- [ ] Payment gateways and delivery integrations
+- [ ] Subdomain routing and custom domains
+- [ ] NestJS + Prisma backend
+- [ ] Working global search and notifications
+
+## Credits
+
+Storefront scaffolding comes from the [NextMerce](https://nextmerce.com/) free Next.js eCommerce template; admin styling follows [TailAdmin](https://tailadmin.com/) conventions. Check each project's licence before commercial use.
