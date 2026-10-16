@@ -9,6 +9,8 @@ const NEXT_STEPS: Record<string, string> = {
   cod: "Please have the exact amount ready — you'll pay when your order is delivered.",
   bank: "The business will contact you shortly with their bank details so you can complete payment.",
   card: "Your demo card payment went through. No real money was taken.",
+  cash: "Your cash payment has been recorded.",
+  pos: "Your card payment has been recorded.",
 };
 
 

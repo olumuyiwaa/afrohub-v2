@@ -208,6 +208,8 @@ export default function BusinessDashboard() {
             <Panel title="Quick actions">
               <QuickLinks
                 items={[
+                  { href: "/admin/business/sales/new", label: "Record a sale", hint: "In person, WhatsApp, Instagram" },
+                  { href: "/admin/business/reports", label: "Reports", hint: "Sales, channels, best sellers" },
                   { href: "/admin/business/products", label: "Products", hint: "Add or edit items" },
                   { href: "/admin/business/orders", label: "Orders", hint: "Process and ship" },
                   { href: "/admin/business/customers", label: "Customers", hint: "See who's buying" },

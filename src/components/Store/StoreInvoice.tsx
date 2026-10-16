@@ -5,7 +5,7 @@ import { useStore } from "@/app/context/StoreContext";
 import { getOrderForConfirmation } from "@/services/store";
 import type { Order } from "@/types/saas";
 
-const PAY: Record<string, string> = { cod: "Pay on delivery", bank: "Bank transfer", card: "Card (demo)" };
+const PAY: Record<string, string> = { cod: "Pay on delivery", bank: "Bank transfer", card: "Card (demo)", cash: "Cash", pos: "POS / card machine" };
 const date = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
 /** Printable invoice / receipt for one order. */

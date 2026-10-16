@@ -47,11 +47,13 @@ export const navFor = (role: Role): NavSection[] =>
           items: [
             { name: "Dashboard", path: "/admin/business", icon: GridIcon },
             { name: "Products", path: "/admin/business/products", icon: BoxIcon },
+            { name: "Record sale", path: "/admin/business/sales/new", icon: DollarLineIcon },
             { name: "Orders", path: "/admin/business/orders", icon: PieChartIcon },
             { name: "Customers", path: "/admin/business/customers", icon: GroupIcon },
             { name: "Groups", path: "/admin/business/groups", icon: GroupIcon },
             { name: "Messages", path: "/admin/business/messages", icon: MailIcon },
             { name: "Discounts", path: "/admin/business/coupons", icon: DollarLineIcon },
+            { name: "Reports", path: "/admin/business/reports", icon: PieChartIcon },
           ],
         },
         {

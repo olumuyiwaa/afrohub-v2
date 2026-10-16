@@ -13,9 +13,12 @@ import type {
   Customer,
   Invoice,
   Order,
+  OrderItem,
   OrderStatus,
   Plan,
+  PaymentMethod,
   Product,
+  SalesChannel,
   Subscription,
   TeamMember,
   TimeSeriesPoint,
@@ -192,6 +195,242 @@ export async function updateOrderStatus(
   else if (status === "cancelled") o.paymentStatus = "unpaid";
   else if (o.paymentStatus === "unpaid" && status !== "pending") o.paymentStatus = "paid";
   return { ...o };
+}
+
+export interface RecordSaleInput {
+  /** Existing customer id, or omit for a walk-in / new customer. */
+  customerId?: string;
+  newCustomer?: { name: string; phone?: string; email?: string };
+  items: { productId: string; variantId?: string; qty: number; price?: number }[];
+  channel: SalesChannel;
+  paymentMethod: PaymentMethod;
+  /** false = the customer still owes the money */
+  paid: boolean;
+  /** true = goods already handed over (delivered); false = still to deliver */
+  handedOver: boolean;
+  /** Flat amount taken off the subtotal */
+  discount?: number;
+  notes?: string;
+}
+
+/** Record a sale made outside the storefront (in person, WhatsApp, Instagram, ...). */
+export async function recordSale(businessId: string, input: RecordSaleInput): Promise<Order> {
+  await delay(500);
+  const biz = db.businesses.find((b) => b.id === businessId);
+  if (!biz) throw new ServiceError("Business not found.");
+  if (biz.status !== "active" && biz.status !== "trial") {
+    throw new ServiceError("Your store isn't active, so new sales can't be recorded.");
+  }
+  if (input.items.length === 0) throw new ServiceError("Add at least one product to the sale.");
+
+  const plan = db.plans.find((p) => p.id === biz.planId);
+  if (plan && plan.limits.ordersPerMonth !== -1) {
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+    const thisMonth = db.orders.filter((o) => o.businessId === biz.id && new Date(o.placedAt) >= monthStart).length;
+    if (thisMonth >= plan.limits.ordersPerMonth) {
+      throw new ServiceError("You've reached this month's order limit on your plan. Upgrade to record more sales.");
+    }
+  }
+
+  // validate every line against current stock BEFORE changing anything
+  const lines: { product: Product; variant?: NonNullable<Product["variants"]>[number]; qty: number; price: number }[] = [];
+  for (const it of input.items) {
+    const product = db.products.find((p) => p.id === it.productId && p.businessId === biz.id);
+    if (!product) throw new ServiceError("One of the products no longer exists.");
+    if (!Number.isInteger(it.qty) || it.qty < 1) throw new ServiceError(`Enter a whole quantity for ${product.name}.`);
+    if (it.price !== undefined && !(it.price >= 0)) throw new ServiceError(`Enter a valid price for ${product.name}.`);
+    if (product.variants?.length) {
+      const variant = product.variants.find((v) => v.id === it.variantId);
+      if (!variant) throw new ServiceError(`Choose an option for ${product.name}.`);
+      const label = `${product.name} (${variant.name})`;
+      if (it.qty > variant.stock) throw new ServiceError(variant.stock <= 0 ? `${label} is sold out.` : `Only ${variant.stock} of ${label} left in stock.`);
+      lines.push({ product, variant, qty: it.qty, price: it.price ?? variant.price ?? product.price });
+      continue;
+    }
+    if (it.qty > product.stock) throw new ServiceError(product.stock <= 0 ? `${product.name} is sold out.` : `Only ${product.stock} of ${product.name} left in stock.`);
+    lines.push({ product, qty: it.qty, price: it.price ?? product.price });
+  }
+
+  const items: OrderItem[] = lines.map(({ product, variant, qty, price }) => ({
+    productId: product.id,
+    ...(variant ? { variantId: variant.id } : {}),
+    name: variant ? `${product.name} (${variant.name})` : product.name,
+    qty,
+    price,
+  }));
+  const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
+  const discount = input.discount && input.discount > 0 ? input.discount : 0;
+  if (discount > subtotal) throw new ServiceError("The discount can't be more than the sale total.");
+  const total = Math.round((subtotal - discount) * 100) / 100;
+
+  // customer: existing, new (reuse by email/phone), or walk-in
+  let customer = input.customerId ? db.customers.find((c) => c.id === input.customerId && c.businessId === biz.id) : undefined;
+  if (input.customerId && !customer) throw new ServiceError("That customer no longer exists.");
+  const nc = input.newCustomer;
+  if (!customer && nc && nc.name.trim()) {
+    const email = nc.email?.trim().toLowerCase() ?? "";
+    const phone = nc.phone?.trim() ?? "";
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) throw new ServiceError("Enter a valid customer email, or leave it blank.");
+    customer = db.customers.find((c) => c.businessId === biz.id && ((email && c.email.toLowerCase() === email) || (phone && c.phone === phone)));
+    if (!customer) {
+      db.customers.unshift({
+        id: uid("cus"),
+        businessId: biz.id,
+        name: nc.name.trim(),
+        email,
+        phone,
+        city: "",
+        orders: 0,
+        totalSpent: 0,
+        joinedAt: new Date().toISOString(),
+      });
+      biz.stats.customers += 1;
+      customer = db.customers[0];
+    }
+  }
+  // the proxy returns stable objects, so re-read to mutate the stored record
+  const stored = customer ? db.customers.find((c) => c.id === customer!.id)! : undefined;
+
+  const prefix = biz.slug.slice(0, 2).toUpperCase();
+  const last = db.orders
+    .filter((o) => o.businessId === biz.id)
+    .reduce((max, o) => Math.max(max, parseInt(o.number.replace(/\D/g, ""), 10) || 0), 999);
+
+  const order: Order = {
+    id: uid("ord"),
+    businessId: biz.id,
+    number: `#${prefix}${last + 1}`,
+    customerId: stored?.id ?? "walk_in",
+    customerName: stored?.name ?? "Walk-in customer",
+    items,
+    total,
+    status: input.handedOver ? "delivered" : "processing",
+    paymentStatus: input.paid ? "paid" : "unpaid",
+    placedAt: new Date().toISOString(),
+    channel: input.channel,
+    paymentMethod: input.paymentMethod,
+    ...(stored?.email ? { customerEmail: stored.email } : {}),
+    ...(stored?.phone ? { customerPhone: stored.phone } : {}),
+    ...(input.notes?.trim() ? { notes: input.notes.trim() } : {}),
+    ...(discount ? { discount } : {}),
+  };
+  db.orders.unshift(order);
+
+  for (const { product, variant, qty } of lines) {
+    if (variant) variant.stock -= qty;
+    product.stock -= qty;
+    product.sold += qty;
+    if (product.stock <= 0) product.status = "out_of_stock";
+  }
+  biz.stats.orders += 1;
+  if (input.paid) {
+    biz.stats.revenue += total;
+    if (stored) {
+      stored.orders += 1;
+      stored.totalSpent += total;
+    }
+  }
+  return { ...order };
+}
+
+// ---------- reports ----------
+
+export type ReportDays = 7 | 30 | 90 | 365;
+
+export interface SalesReport {
+  days: ReportDays;
+  revenue: number;
+  revenueChangePct: number;
+  orders: number;
+  ordersChangePct: number;
+  avgOrderValue: number;
+  /** Money still owed by customers on live orders in this period */
+  outstanding: number;
+  itemsSold: number;
+  newCustomers: number;
+  series: TimeSeriesPoint[];
+  byChannel: { channel: SalesChannel; orders: number; revenue: number }[];
+  byPayment: { method: PaymentMethod | "unknown"; orders: number; revenue: number }[];
+  topProducts: { name: string; qty: number; revenue: number }[];
+  topCustomers: { id: string; name: string; orders: number; revenue: number }[];
+}
+
+export async function getSalesReport(businessId: string, days: ReportDays): Promise<SalesReport> {
+  await delay();
+  const all = db.orders.filter((o) => o.businessId === businessId);
+  const paid = all.filter((o) => o.paymentStatus === "paid");
+  const cur = paid.filter((o) => inRange(o.placedAt, days, 0));
+  const prev = paid.filter((o) => inRange(o.placedAt, days * 2, days));
+  const sum = (xs: Order[]) => xs.reduce((s, o) => s + o.total, 0);
+  const change = (a: number, b: number) => (b === 0 ? (a > 0 ? 100 : 0) : ((a - b) / b) * 100);
+
+  // chart buckets: daily up to 30 days, weekly for 90, monthly-ish for a year
+  const size = days <= 30 ? 1 : days <= 90 ? 7 : 30;
+  const buckets = Math.ceil(days / size);
+  const series: TimeSeriesPoint[] = [];
+  for (let b = buckets - 1; b >= 0; b--) {
+    const start = Math.min(days, (b + 1) * size);
+    const end = b * size;
+    const day = new Date(Date.now() - end * DAY);
+    series.push({
+      label: day.toLocaleDateString("en-US", size >= 30 ? { month: "short" } : { month: "short", day: "numeric" }),
+      value: cur.filter((o) => inRange(o.placedAt, start, end)).reduce((s, o) => s + o.total, 0),
+    });
+  }
+
+  const group = <K extends string>(keyOf: (o: Order) => K) => {
+    const map = new Map<K, { orders: number; revenue: number }>();
+    for (const o of cur) {
+      const k = keyOf(o);
+      const g = map.get(k) ?? { orders: 0, revenue: 0 };
+      g.orders += 1;
+      g.revenue += o.total;
+      map.set(k, g);
+    }
+    return Array.from(map.entries()).map(([key, v]) => ({ key, ...v })).sort((a, b) => b.revenue - a.revenue);
+  };
+
+  const prodMap = new Map<string, { name: string; qty: number; revenue: number }>();
+  for (const o of cur) {
+    for (const it of o.items) {
+      const p = db.products.find((x) => x.id === it.productId);
+      const key = it.productId;
+      const g = prodMap.get(key) ?? { name: p?.name ?? it.name, qty: 0, revenue: 0 };
+      g.qty += it.qty;
+      g.revenue += it.qty * it.price;
+      prodMap.set(key, g);
+    }
+  }
+
+  const custMap = new Map<string, { id: string; name: string; orders: number; revenue: number }>();
+  for (const o of cur) {
+    if (o.customerId === "walk_in") continue;
+    const g = custMap.get(o.customerId) ?? { id: o.customerId, name: o.customerName, orders: 0, revenue: 0 };
+    g.orders += 1;
+    g.revenue += o.total;
+    custMap.set(o.customerId, g);
+  }
+
+  const live = all.filter((o) => o.status !== "cancelled" && o.status !== "refunded" && o.paymentStatus === "unpaid" && inRange(o.placedAt, days, 0));
+
+  return {
+    days,
+    revenue: sum(cur),
+    revenueChangePct: change(sum(cur), sum(prev)),
+    orders: cur.length,
+    ordersChangePct: change(cur.length, prev.length),
+    avgOrderValue: cur.length ? sum(cur) / cur.length : 0,
+    outstanding: live.reduce((s, o) => s + o.total, 0),
+    itemsSold: cur.reduce((s, o) => s + o.items.reduce((n, i) => n + i.qty, 0), 0),
+    newCustomers: db.customers.filter((c) => c.businessId === businessId && inRange(c.joinedAt, days, 0)).length,
+    series,
+    byChannel: group((o) => o.channel ?? "online").map((g) => ({ channel: g.key, orders: g.orders, revenue: g.revenue })),
+    byPayment: group((o) => (o.paymentMethod ?? "unknown") as PaymentMethod | "unknown").map((g) => ({ method: g.key, orders: g.orders, revenue: g.revenue })),
+    topProducts: Array.from(prodMap.values()).sort((a, b) => b.revenue - a.revenue).slice(0, 8),
+    topCustomers: Array.from(custMap.values()).sort((a, b) => b.revenue - a.revenue).slice(0, 5),
+  };
 }
 
 export async function listCustomers(businessId: string): Promise<Customer[]> {

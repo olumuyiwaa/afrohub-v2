@@ -10,6 +10,8 @@ import StatusBadge, { label } from "@/components/saas/StatusBadge";
 import { inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import { Modal } from "@/components/ui/modal";
 import { shortDate } from "@/lib/format";
+import { CHANNEL_LABELS, channelOf, PAYMENT_LABELS } from "@/lib/orderMeta";
+import Link from "next/link";
 import type { Order, OrderStatus } from "@/types/saas";
 
 const STATUSES: OrderStatus[] = ["pending", "processing", "shipped", "delivered", "cancelled", "refunded"];
@@ -61,6 +63,7 @@ export default function OrdersPage() {
     { key: "no", header: "Order", sortValue: (o) => o.number, render: (o) => <span className="font-medium text-gray-800 dark:text-white/90">{o.number}</span> },
     { key: "cust", header: "Customer", sortValue: (o) => o.customerName, render: (o) => o.customerName },
     { key: "items", header: "Items", render: (o) => o.items.reduce((s, i) => s + i.qty, 0) },
+    { key: "chan", header: "Channel", sortValue: (o) => channelOf(o), render: (o) => <span className="text-gray-600 dark:text-gray-400">{CHANNEL_LABELS[channelOf(o)]}</span> },
     { key: "total", header: "Total", sortValue: (o) => o.total, render: (o) => fmt(o.total) },
     { key: "pay", header: "Payment", sortValue: (o) => o.paymentStatus, render: (o) => <StatusBadge status={o.paymentStatus} /> },
     { key: "status", header: "Status", sortValue: (o) => o.status, render: (o) => <StatusBadge status={o.status} /> },
@@ -69,7 +72,11 @@ export default function OrdersPage() {
 
   return (
     <>
-      <PageHeader title="Orders" subtitle={`${data.length} orders`} />
+      <PageHeader
+        title="Orders"
+        subtitle={`${data.length} orders`}
+        action={<Link href="/admin/business/sales/new" className="inline-flex items-center justify-center rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white hover:bg-brand-600">Record a sale</Link>}
+      />
       <DataTable
         rows={data}
         columns={columns}
@@ -108,9 +115,10 @@ export default function OrdersPage() {
             <div className="flex items-center gap-3">
               <StatusBadge status={selected.paymentStatus} />
               <StatusBadge status={selected.status} />
+              <span className="text-theme-xs text-gray-500">{CHANNEL_LABELS[channelOf(selected)]}</span>
               {selected.paymentMethod && (
                 <span className="text-theme-xs text-gray-500">
-                  {{ cod: "Pay on delivery", bank: "Bank transfer", card: "Card (demo)" }[selected.paymentMethod]}
+                  {PAYMENT_LABELS[selected.paymentMethod]}
                 </span>
               )}
             </div>

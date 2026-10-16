@@ -6,7 +6,7 @@
 import * as seed from "@/mock/seed";
 import type { AuthUser } from "@/types/saas";
 
-const STORAGE_KEY = "afrohub:db:v4";
+const STORAGE_KEY = "afrohub:db:v5";
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 
 const fresh = () => ({

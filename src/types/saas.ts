@@ -136,7 +136,10 @@ export type OrderStatus =
 
 export type PaymentStatus = "paid" | "unpaid" | "refunded";
 
-export type PaymentMethod = "cod" | "bank" | "card";
+export type PaymentMethod = "cod" | "bank" | "card" | "cash" | "pos";
+
+/** Where a sale came from. Online = the storefront; the rest are recorded by the merchant. */
+export type SalesChannel = "online" | "in_store" | "whatsapp" | "instagram" | "phone" | "other";
 
 export interface OrderItem {
   productId: string;
@@ -163,6 +166,8 @@ export interface Order {
   shippingAddress?: string;
   notes?: string;
   paymentMethod?: PaymentMethod;
+  /** Absent on older orders, which are treated as online. */
+  channel?: SalesChannel;
   /** Shopper discount applied at checkout; `total` is already net of it. */
   couponCode?: string;
   discount?: number;

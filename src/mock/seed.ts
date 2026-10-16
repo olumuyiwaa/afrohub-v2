@@ -367,6 +367,9 @@ businesses.forEach((biz, idx) => {
       status,
       paymentStatus,
       placedAt: new Date(NOW - age * DAY - int(0, 20) * 3600 * 1000).toISOString(),
+      // Deterministic (no RNG) so the rest of the seed stays exactly as it was.
+      channel: o % 7 === 0 ? "whatsapp" : o % 5 === 0 ? "instagram" : o % 11 === 0 ? "in_store" : "online",
+      paymentMethod: (["card", "bank", "cod", "card"] as const)[o % 4],
     });
     if (paymentStatus === "paid") {
       customer.orders += 1;
