@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { AuthProvider, homeFor, useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
 import { listPlans } from "@/services/platform";
-import MarketingShell from "@/components/saas/MarketingShell";
+import MarketingShell, { MARKETING_WIDTH } from "@/components/saas/MarketingShell";
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import CurrencySwitcher from "@/components/saas/CurrencySwitcher";
 import { planAmount, planPriceLabel, useCurrency } from "@/lib/currency";
@@ -60,7 +60,8 @@ function SignupFlow() {
   const labels = ["Your account", "Your business", "Choose a plan"];
 
   return (
-    <div className="mx-auto max-w-xl px-5 py-14">
+    <div className={`${MARKETING_WIDTH} py-14 lg:grid lg:grid-cols-[minmax(0,560px)_1fr] lg:gap-20 lg:py-20`}>
+    <div>
       <ol className="mb-8 flex items-center gap-2 text-sm">
         {labels.map((l, i) => (
           <li key={l} className={`flex flex-1 items-center gap-2 ${i + 1 <= step ? "text-brand-600" : "text-gray-400"}`}>
@@ -131,6 +132,22 @@ function SignupFlow() {
         {step < 3 ? <PrimaryButton onClick={next}>Continue</PrimaryButton> : <PrimaryButton busy={busy} onClick={submit}>{plans?.find((p) => p.id === form.planId)?.priceMonthly === 0 ? "Create free store" : "Start free trial"}</PrimaryButton>}
       </div>
       <p className="mt-8 text-center text-sm text-gray-500">Already have an account? <Link href="/admin/login" className="font-medium text-brand-500">Sign in</Link></p>
+    </div>
+
+    <aside className="hidden lg:block" aria-label="What you get">
+      <div className="sticky top-28 rounded-3xl bg-brand-950 p-10 text-white">
+        <p className="text-sm font-medium text-brand-100/80">Everything you need to sell online</p>
+        <h2 className="mt-3 text-3xl font-semibold leading-tight">Open your shop in minutes, not weeks.</h2>
+        <ul className="mt-8 space-y-4 text-brand-100/90">
+          {["14-day free trial, no card required", "Your own storefront link to share anywhere", "Orders, customers and reports in one dashboard", "Upgrade, downgrade or cancel anytime"].map((t) => (
+            <li key={t} className="flex gap-3">
+              <span aria-hidden className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/15 text-sm">✓</span>
+              <span>{t}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </aside>
     </div>
   );
 }
