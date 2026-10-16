@@ -15,7 +15,7 @@ A multi-tenant SaaS platform that lets small African businesses subscribe, get t
 | Super admin | `/admin/super/*` | The AfroHub team |
 | Public storefront | `/s/<slug>` | Shoppers |
 
-**Business admin:** dashboard with setup checklist, KPIs and needs-attention panel; products (photo upload, size/colour variants with their own stock and price); orders (status updates, invoice link, send receipt); customers; discounts and coupons; team; billing and plan changes; store settings.
+**Business admin:** dashboard with setup checklist, KPIs and needs-attention panel; products (photo upload, size/colour variants with their own stock and price); orders (status updates, invoice link, send receipt); customers (filter by group); customer groups (automatic rules like "spent over X" or hand-picked); messages (email, SMS or WhatsApp to everyone or a group, with {{first_name}} personalisation; demo only, nothing is delivered); discounts and coupons; team; billing and plan changes; store settings.
 
 **Super admin:** platform overview (MRR, churn, sign-ups, alerts); business approvals, suspend/reactivate; plans editor; subscriptions; invoices.
 
@@ -58,7 +58,7 @@ Go to `/admin/login` and pick an account (password for all: `demo1234`).
 
 Try a storefront at `/s/adire-hub` or `/s/kente-co`. Coupon codes to try at checkout: `WELCOME10`, `SAVE5` (minimum $50).
 
-Demo data lives in your browser's localStorage (`afrohub:db:v3`). The login page has a reset option, or clear site data to start fresh.
+Demo data lives in your browser's localStorage (`afrohub:db:v4`). The login page has a reset option, or clear site data to start fresh.
 
 ## Project structure
 
@@ -93,7 +93,7 @@ UI code never touches data directly. It calls typed async functions in `src/serv
 - [x] Discounts and coupons
 - [x] Invoices and receipts
 - [x] Product variants and photo upload
-- [ ] Customer groups and messaging
+- [x] Customer groups and messaging
 - [ ] Payment gateways and delivery integrations
 - [ ] Subdomain routing and custom domains
 - [ ] NestJS + Prisma backend

@@ -1,7 +1,12 @@
 // Business admin (tenant) services. Every call is scoped by businessId, which
 // is exactly how the real API will authorise requests.
 import type {
+  Audience,
   Business,
+  CustomerGroup,
+  GroupRuleType,
+  Message,
+  MessageChannel,
   Coupon,
   BusinessOverview,
   BusinessUsage,
@@ -360,4 +365,154 @@ export async function markReceiptSent(businessId: string, orderId: string): Prom
   if (!o) throw new ServiceError("Order not found.");
   o.receiptSentAt = new Date().toISOString();
   return { ...o };
+}
+
+// ---------- customer groups ----------
+
+export type GroupInput = Pick<CustomerGroup, "name" | "description" | "kind" | "rule" | "memberIds">;
+export type GroupWithCount = CustomerGroup & { memberCount: number };
+
+export const RULE_LABELS: Record<GroupRuleType, string> = {
+  spent_over: "Has spent more than",
+  orders_at_least: "Has placed at least (orders)",
+  joined_within_days: "Joined in the last (days)",
+  no_order_within_days: "No order in the last (days)",
+};
+
+function membersOf(businessId: string, g: CustomerGroup): Customer[] {
+  const mine = db.customers.filter((c) => c.businessId === businessId);
+  if (g.kind === "manual") {
+    const ids = new Set(g.memberIds);
+    return mine.filter((c) => ids.has(c.id));
+  }
+  const rule = g.rule;
+  if (!rule) return [];
+  const now = Date.now();
+  const lastOrder = (c: Customer) =>
+    db.orders
+      .filter((o) => o.businessId === businessId && o.customerId === c.id)
+      .reduce((max, o) => Math.max(max, new Date(o.placedAt).getTime()), 0);
+  return mine.filter((c) => {
+    switch (rule.type) {
+      case "spent_over": return c.totalSpent > rule.value;
+      case "orders_at_least": return c.orders >= rule.value;
+      case "joined_within_days": return now - new Date(c.joinedAt).getTime() <= rule.value * DAY;
+      case "no_order_within_days": {
+        const last = lastOrder(c);
+        return last === 0 ? now - new Date(c.joinedAt).getTime() > rule.value * DAY : now - last > rule.value * DAY;
+      }
+    }
+  });
+}
+
+export async function listGroups(businessId: string): Promise<GroupWithCount[]> {
+  await delay(250);
+  return db.customerGroups
+    .filter((g) => g.businessId === businessId)
+    .map((g) => ({ ...g, memberCount: membersOf(businessId, g).length }));
+}
+
+export async function getGroupMembers(businessId: string, groupId: string): Promise<Customer[]> {
+  await delay(200);
+  const g = db.customerGroups.find((x) => x.id === groupId && x.businessId === businessId);
+  if (!g) throw new ServiceError("Group not found.");
+  return membersOf(businessId, g).map((c) => ({ ...c }));
+}
+
+export async function saveGroup(businessId: string, id: string | null, input: GroupInput): Promise<CustomerGroup> {
+  await delay(400);
+  const name = input.name.trim();
+  if (!name) throw new ServiceError("Give the group a name.");
+  if (db.customerGroups.some((g) => g.businessId === businessId && g.id !== id && g.name.toLowerCase() === name.toLowerCase())) {
+    throw new ServiceError("You already have a group with that name.");
+  }
+  if (input.kind === "auto" && !(input.rule && input.rule.value >= 0 && Number.isFinite(input.rule.value))) {
+    throw new ServiceError("Enter a valid number for the rule.");
+  }
+  const valid = new Set(db.customers.filter((c) => c.businessId === businessId).map((c) => c.id));
+  const patch = {
+    name,
+    description: input.description?.trim() || undefined,
+    kind: input.kind,
+    rule: input.kind === "auto" ? input.rule : undefined,
+    memberIds: input.kind === "manual" ? input.memberIds.filter((m) => valid.has(m)) : [],
+  };
+  if (id) {
+    const g = db.customerGroups.find((x) => x.id === id && x.businessId === businessId);
+    if (!g) throw new ServiceError("Group not found.");
+    Object.assign(g, patch);
+    return { ...g };
+  }
+  const g: CustomerGroup = { id: uid("grp"), businessId, ...patch, createdAt: new Date().toISOString() };
+  db.customerGroups.push(g);
+  return { ...g };
+}
+
+export async function deleteGroup(businessId: string, id: string): Promise<void> {
+  await delay(250);
+  const i = db.customerGroups.findIndex((g) => g.id === id && g.businessId === businessId);
+  if (i >= 0) db.customerGroups.splice(i, 1);
+}
+
+// ---------- messages ----------
+
+const reachable = (c: Customer, channel: MessageChannel) =>
+  channel === "email" ? /^\S+@\S+\.\S+$/.test(c.email ?? "") : (c.phone ?? "").replace(/\D/g, "").length >= 7;
+
+function audienceMembers(businessId: string, audience: Audience, channel: MessageChannel) {
+  let pool: Customer[];
+  let label = "All customers";
+  if (audience.type === "group") {
+    const g = db.customerGroups.find((x) => x.id === audience.groupId && x.businessId === businessId);
+    if (!g) throw new ServiceError("That group no longer exists.");
+    pool = membersOf(businessId, g);
+    label = g.name;
+  } else {
+    pool = db.customers.filter((c) => c.businessId === businessId);
+  }
+  return { label, total: pool.length, recipients: pool.filter((c) => reachable(c, channel)) };
+}
+
+/** How many customers a message would reach (customers without an email / phone are skipped). */
+export async function countRecipients(businessId: string, audience: Audience, channel: MessageChannel) {
+  await delay(150);
+  const a = audienceMembers(businessId, audience, channel);
+  return { count: a.recipients.length, skipped: a.total - a.recipients.length, label: a.label, sampleName: a.recipients[0]?.name.split(" ")[0] };
+}
+
+export async function listMessages(businessId: string): Promise<Message[]> {
+  await delay(250);
+  return db.messages
+    .filter((m) => m.businessId === businessId)
+    .sort((a, b) => +new Date(b.sentAt) - +new Date(a.sentAt))
+    .map((m) => ({ ...m }));
+}
+
+export interface MessageInput {
+  channel: MessageChannel;
+  subject?: string;
+  body: string;
+  audience: Audience;
+}
+
+export async function sendMessage(businessId: string, input: MessageInput): Promise<Message> {
+  await delay(900);
+  const body = input.body.trim();
+  if (!body) throw new ServiceError("Write a message first.");
+  if (input.channel === "email" && !input.subject?.trim()) throw new ServiceError("Add a subject for the email.");
+  if (input.channel === "sms" && body.length > 480) throw new ServiceError("SMS messages are limited to 480 characters.");
+  const a = audienceMembers(businessId, input.audience, input.channel);
+  if (a.recipients.length === 0) throw new ServiceError("No customers in this audience can be reached on that channel.");
+  const m: Message = {
+    id: uid("msg"),
+    businessId,
+    channel: input.channel,
+    ...(input.channel === "email" ? { subject: input.subject!.trim() } : {}),
+    body,
+    audienceLabel: a.label,
+    recipientCount: a.recipients.length,
+    sentAt: new Date().toISOString(),
+  };
+  db.messages.unshift(m);
+  return { ...m };
 }

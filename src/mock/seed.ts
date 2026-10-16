@@ -5,6 +5,8 @@
 import type {
   Business,
   Coupon,
+  CustomerGroup,
+  Message,
   Currency,
   BusinessStatus,
   Customer,
@@ -512,6 +514,38 @@ businesses.forEach((biz, idx) => {
     mk("LOYAL15", "percent", 15, { status: "disabled", usedCount: 3 });
   } else if (biz.status === "active" && chance(0.6)) {
     mk("WELCOME10", "percent", 10, { usedCount: int(0, 12) });
+  }
+});
+
+// ---------- customer groups & messages ----------
+
+export const customerGroups: CustomerGroup[] = [];
+export const messages: Message[] = [];
+businesses.forEach((biz, idx) => {
+  if (biz.status === "pending" || (biz.planId === "plan_basic" && idx !== 0)) return;
+  const mine = customers.filter((c) => c.businessId === biz.id);
+  if (mine.length < 4) return;
+  const scale = PRICE_SCALE[biz.currency];
+  const g = (name: string, extra: Partial<CustomerGroup>) =>
+    customerGroups.push({
+      id: `grp_${biz.id.slice(4)}_${customerGroups.length + 1}`,
+      businessId: biz.id,
+      name,
+      kind: "auto",
+      memberIds: [],
+      createdAt: daysAgo(40),
+      ...extra,
+    });
+  g("VIP customers", { description: "Spent a lot with us", rule: { type: "spent_over", value: 150 * scale } });
+  g("Repeat buyers", { description: "Ordered three times or more", rule: { type: "orders_at_least", value: 3 } });
+  g("New this month", { description: "Joined in the last 30 days", rule: { type: "joined_within_days", value: 30 } });
+  if (idx === 0) {
+    g("Wholesale buyers", { description: "Shops that buy in bulk", kind: "manual", rule: undefined, memberIds: mine.slice(0, 5).map((c) => c.id) });
+    g("Lapsed customers", { description: "No order in 60 days", rule: { type: "no_order_within_days", value: 60 } });
+    messages.push(
+      { id: `msg_${biz.id.slice(4)}_1`, businessId: biz.id, channel: "email", subject: "Eid collection is here", body: "Hi {{first_name}}, our Eid collection just landed at {{store}}. Use code EID25 this week.", audienceLabel: "All customers", recipientCount: mine.length, sentAt: daysAgo(21) },
+      { id: `msg_${biz.id.slice(4)}_2`, businessId: biz.id, channel: "whatsapp", body: "Hi {{first_name}}, thank you for shopping with {{store}}. Your next order ships free.", audienceLabel: "Repeat buyers", recipientCount: 9, sentAt: daysAgo(8) },
+    );
   }
 });
 

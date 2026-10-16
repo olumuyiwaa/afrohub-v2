@@ -213,6 +213,39 @@ export interface Customer {
   joinedAt: string;
 }
 
+export type GroupRuleType = "spent_over" | "orders_at_least" | "joined_within_days" | "no_order_within_days";
+
+export interface CustomerGroup {
+  id: string;
+  businessId: string;
+  name: string;
+  description?: string;
+  /** manual: you pick the members. auto: members are worked out from a rule. */
+  kind: "manual" | "auto";
+  memberIds: string[]; // manual groups
+  rule?: { type: GroupRuleType; value: number }; // auto groups
+  createdAt: string;
+}
+
+export type MessageChannel = "email" | "sms" | "whatsapp";
+
+export interface Audience {
+  type: "all" | "group";
+  groupId?: string;
+}
+
+export interface Message {
+  id: string;
+  businessId: string;
+  channel: MessageChannel;
+  subject?: string;
+  /** Template; {{first_name}} and {{store}} are filled in per customer. */
+  body: string;
+  audienceLabel: string;
+  recipientCount: number;
+  sentAt: string;
+}
+
 export interface TeamMember {
   id: string;
   businessId: string;

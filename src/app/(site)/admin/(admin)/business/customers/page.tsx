@@ -2,7 +2,7 @@
 import { useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
-import { listCustomers } from "@/services/business";
+import { getGroupMembers, listCustomers, listGroups } from "@/services/business";
 import { ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import DataTable, { type Column } from "@/components/saas/DataTable";
 import { initials, shortDate } from "@/lib/format";
@@ -32,7 +32,12 @@ export default function CustomersPage() {
   const fmt = useBizMoney();
   const columns = makeColumns(fmt);
   const bid = user!.businessId!;
-  const { data, loading, error, reload } = useAsync(() => listCustomers(bid), [bid]);
+  const { data: all, loading, error, reload } = useAsync(async () => {
+    const [customers, groups] = await Promise.all([listCustomers(bid), listGroups(bid)]);
+    const members = Object.fromEntries(await Promise.all(groups.map(async (g) => [g.id, new Set((await getGroupMembers(bid, g.id)).map((c) => c.id))] as const)));
+    return { customers, groups, members };
+  }, [bid]);
+  const data = all?.customers;
   if (loading) return <PageLoading />;
   if (error || !data) return <ErrorNote message={error ?? "Could not load customers."} onRetry={reload} />;
   return (
@@ -44,6 +49,7 @@ export default function CustomersPage() {
         rowKey={(c) => c.id}
         searchText={(c) => `${c.name} ${c.email} ${c.city}`}
         searchPlaceholder="Search customers…"
+        filter={all && all.groups.length > 0 ? { label: "Group", options: all.groups.map((g) => ({ label: g.name, value: g.id })), match: (c, v) => all.members[v]?.has(c.id) ?? false } : undefined}
         emptyTitle="No customers yet"
         emptyBody="Customers appear here after their first order."
       />
