@@ -46,7 +46,10 @@ export const toTemplateProduct = (p: StoreProductRow): Product => ({
   description: p.description,
   stock: p.status === "out_of_stock" ? 0 : p.stock,
   color: p.imageColor,
-  imgs: p.image ? { thumbnails: [p.image], previews: [p.image] } : undefined,
+  imgs: (() => {
+    const all = p.images?.length ? p.images : p.image ? [p.image] : [];
+    return all.length ? { thumbnails: all, previews: all } : undefined;
+  })(),
   variants: p.variants?.length ? p.variants.map((v) => ({ ...v })) : undefined,
   sku: p.sku,
   createdAt: p.createdAt,

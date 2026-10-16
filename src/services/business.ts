@@ -102,9 +102,11 @@ export async function listProducts(businessId: string): Promise<Product[]> {
   return db.products.filter((p) => p.businessId === businessId);
 }
 
+export const MAX_PRODUCT_IMAGES = 6;
+
 export type ProductInput = Pick<Product, "name" | "sku" | "category" | "description" | "price" | "stock" | "status"> & {
-  /** data URL to set, null to remove, undefined to leave unchanged */
-  image?: string | null;
+  /** Photos as data URLs, cover first. Omit to leave unchanged; [] removes all. */
+  images?: string[];
   variants?: Product["variants"];
 };
 
@@ -128,8 +130,10 @@ export async function saveProduct(
   id?: string
 ): Promise<Product> {
   await delay(400);
-  const { image, variants: rawVariants, ...fields } = input;
+  const { images: rawImages, variants: rawVariants, ...fields } = input;
   const variants = cleanVariants(rawVariants);
+  if (rawImages && rawImages.length > MAX_PRODUCT_IMAGES) throw new ServiceError(`A product can have up to ${MAX_PRODUCT_IMAGES} photos.`);
+  const images = rawImages?.filter(Boolean);
   if (variants) fields.stock = variants.reduce((s, v) => s + v.stock, 0);
   input = fields as ProductInput;
   if (id) {
@@ -139,8 +143,10 @@ export async function saveProduct(
       status: input.stock === 0 && input.status === "active" ? "out_of_stock" : input.status,
     });
     p.variants = variants;
-    if (image === null) p.image = undefined;
-    else if (image) p.image = image;
+    if (images) {
+      p.images = images.length ? images : undefined;
+      p.image = images[0];
+    }
     return { ...p };
   }
   const biz = db.businesses.find((b) => b.id === businessId);
@@ -157,7 +163,7 @@ export async function saveProduct(
     sold: 0,
     imageColor: colors[count % colors.length],
     createdAt: new Date().toISOString(),
-    ...(image ? { image } : {}),
+    ...(images?.length ? { images, image: images[0] } : {}),
     ...(variants ? { variants } : {}),
     status: input.stock === 0 && input.status === "active" ? "out_of_stock" : input.status,
   };

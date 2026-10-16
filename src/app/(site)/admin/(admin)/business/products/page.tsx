@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useBizCurrency, useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
-import { deleteProduct, listProducts, saveProduct, type ProductInput } from "@/services/business";
+import { deleteProduct, listProducts, MAX_PRODUCT_IMAGES, saveProduct, type ProductInput } from "@/services/business";
 import { ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import DataTable, { type Column } from "@/components/saas/DataTable";
 import StatusBadge from "@/components/saas/StatusBadge";
@@ -31,7 +31,7 @@ export default function ProductsPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [rowError, setRowError] = useState<string | null>(null);
-  const [image, setImage] = useState<string | null>(null);
+  const [images, setImages] = useState<string[]>([]);
   const [drafts, setDrafts] = useState<DraftVariant[]>([]);
 
   if (loading) return <PageLoading />;
@@ -39,22 +39,29 @@ export default function ProductsPage() {
 
   const open = (p: Product | "new") => {
     setFormError(null);
-    setImage(p !== "new" ? p.image ?? null : null);
+    setImages(p !== "new" ? (p.images?.length ? p.images : p.image ? [p.image] : []) : []);
     setDrafts(p !== "new" ? (p.variants ?? []).map(toDraft) : []);
     setEditing(p);
   };
 
-  const pickPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const pickPhotos = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
     e.target.value = "";
-    if (!file) return;
+    if (files.length === 0) return;
+    const room = MAX_PRODUCT_IMAGES - images.length;
+    if (room <= 0) return setFormError(`You can add up to ${MAX_PRODUCT_IMAGES} photos per product.`);
+    const picked = files.slice(0, room);
     try {
-      setImage(await fileToDataUrl(file));
-      setFormError(null);
+      const added = await Promise.all(picked.map((f) => fileToDataUrl(f, 640, 0.8)));
+      setImages((cur) => [...cur, ...added]);
+      setFormError(files.length > room ? `Only the first ${room} photo${room === 1 ? "" : "s"} were added (max ${MAX_PRODUCT_IMAGES}).` : null);
     } catch (err) {
       setFormError(err instanceof Error ? err.message : "Could not use that photo.");
     }
   };
+
+  const makeCover = (i: number) => setImages((cur) => [cur[i], ...cur.filter((_, k) => k !== i)]);
+  const removeImage = (i: number) => setImages((cur) => cur.filter((_, k) => k !== i));
 
   const setDraft = (key: string, patch: Partial<DraftVariant>) =>
     setDrafts((d) => d.map((v) => (v.key === key ? { ...v, ...patch } : v)));
@@ -83,7 +90,7 @@ export default function ProductsPage() {
           )}
           <div>
             <p className="font-medium text-gray-800 dark:text-white/90">{p.name}</p>
-            <p className="text-theme-xs text-gray-500">{p.sku}{p.variants?.length ? ` · ${p.variants.length} variants` : ""}</p>
+            <p className="text-theme-xs text-gray-500">{p.sku}{p.variants?.length ? ` · ${p.variants.length} variants` : ""}{(p.images?.length ?? 0) > 1 ? ` · ${p.images!.length} photos` : ""}</p>
           </div>
         </div>
       ),
@@ -114,7 +121,7 @@ export default function ProductsPage() {
       price: Number(f.get("price")),
       stock: Number(f.get("stock")),
       status: f.get("status") as ProductStatus,
-      image: image ?? null,
+      images,
     };
     if (drafts.length) {
       input.variants = drafts.map((d) => ({
@@ -190,21 +197,30 @@ export default function ProductsPage() {
               </select>
             </Field>
             <div>
-              <span className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Photo</span>
-              <div className="flex items-center gap-4">
-                {image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={image} alt="Product preview" className="h-20 w-20 rounded-xl object-cover" />
-                ) : (
-                  <span className="flex h-20 w-20 items-center justify-center rounded-xl bg-gray-100 text-theme-xs text-gray-400 dark:bg-white/5">No photo</span>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  <label className="inline-flex cursor-pointer items-center rounded-lg px-4 py-2.5 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:text-gray-400 dark:ring-gray-700">
-                    {image ? "Replace photo" : "Upload photo"}
-                    <input type="file" accept="image/*" aria-label="Product photo" className="sr-only" onChange={pickPhoto} />
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Photos <span className="font-normal text-gray-400">({images.length}/{MAX_PRODUCT_IMAGES}, the first is the cover)</span>
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                {images.map((src, i) => (
+                  <div key={i} className="group relative aspect-square overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={src} alt={`Product photo ${i + 1}`} className="h-full w-full object-cover" />
+                    {i === 0 && <span className="absolute left-1.5 top-1.5 rounded-md bg-brand-500 px-1.5 py-0.5 text-[10px] font-medium text-white">Cover</span>}
+                    <div className="absolute inset-x-0 bottom-0 flex justify-between gap-1 bg-gradient-to-t from-black/60 to-transparent p-1.5 text-[11px] font-medium text-white">
+                      {i > 0 ? <button type="button" onClick={() => makeCover(i)} className="hover:underline">Make cover</button> : <span />}
+                      <button type="button" aria-label={`Remove photo ${i + 1}`} onClick={() => removeImage(i)} className="hover:underline">Remove</button>
+                    </div>
+                  </div>
+                ))}
+                {images.length < MAX_PRODUCT_IMAGES && (
+                  <label className="flex aspect-square cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 text-center text-theme-xs text-gray-500 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-white/[0.03]">
+                    <span className="text-xl leading-none">+</span>
+                    <span className="mt-1">{images.length === 0 ? "Add photos" : "Add more"}</span>
+                    <input type="file" accept="image/*" multiple aria-label="Product photos" className="sr-only" onChange={pickPhotos} />
                   </label>
-                  {image && <button type="button" onClick={() => setImage(null)} className="text-sm font-medium text-error-600">Remove</button>}
-                </div>
+                )}
               </div>
             </div>
             <div>

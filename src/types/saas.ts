@@ -119,8 +119,10 @@ export interface Product {
   status: ProductStatus;
   sold: number;
   imageColor: string;
-  /** Uploaded photo as a (resized) data URL. */
+  /** Cover photo (always images[0] when there are photos), kept for screens that show one picture. */
   image?: string;
+  /** All photos as (resized) data URLs, cover first. */
+  images?: string[];
   /** When present, product.stock is the sum of the variants' stock. */
   variants?: ProductVariant[];
   createdAt: string;
