@@ -7,7 +7,8 @@ import { useAsync } from "@/hooks/useAsync";
 import { listPlans } from "@/services/platform";
 import MarketingShell from "@/components/saas/MarketingShell";
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
-import { money } from "@/lib/format";
+import CurrencySwitcher from "@/components/saas/CurrencySwitcher";
+import { planAmount, planPriceLabel, useCurrency } from "@/lib/currency";
 
 const CATEGORIES = ["Fashion & Textiles", "Food & Groceries", "Beauty & Wellness", "Crafts & Decor", "Coffee & Tea", "Jewellery", "Other"];
 
@@ -16,6 +17,7 @@ function SignupFlow() {
   const params = useSearchParams();
   const { register } = useAuth();
   const { data: plans } = useAsync(listPlans);
+  const [currency] = useCurrency();
 
   const [step, setStep] = useState(1);
   const [busy, setBusy] = useState(false);
@@ -94,12 +96,15 @@ function SignupFlow() {
         )}
         {step === 3 && (
           <>
+            <div className="flex flex-wrap items-center gap-3">
             <div className="inline-flex rounded-lg bg-gray-100 p-1 text-sm">
               {(["monthly", "yearly"] as const).map((c) => (
                 <button key={c} type="button" onClick={() => setForm((f) => ({ ...f, cycle: c }))} className={`rounded-md px-4 py-2 font-medium ${form.cycle === c ? "bg-white shadow-theme-xs" : "text-gray-500"}`}>
                   {c === "monthly" ? "Monthly" : "Yearly"}
                 </button>
               ))}
+            </div>
+            <CurrencySwitcher />
             </div>
             <div className="space-y-3">
               {plans?.filter((p) => p.isActive).map((p) => (
@@ -111,7 +116,7 @@ function SignupFlow() {
                       <span className="block text-xs text-gray-500">{p.limits.products === -1 ? "Unlimited" : p.limits.products} products · {p.limits.staff} team members</span>
                     </span>
                   </span>
-                  <span className="text-right font-semibold">{money(form.cycle === "yearly" ? p.priceYearly : p.priceMonthly)}<span className="text-xs font-normal text-gray-500">/{form.cycle === "yearly" ? "yr" : "mo"}</span></span>
+                  <span className="text-right font-semibold">{planPriceLabel(p, form.cycle, currency)}{planAmount(p, "monthly", "USD") > 0 && <span className="text-xs font-normal text-gray-500">/{form.cycle === "yearly" ? "yr" : "mo"}</span>}</span>
                 </label>
               ))}
             </div>
@@ -123,7 +128,7 @@ function SignupFlow() {
 
       <div className="mt-8 flex items-center justify-between">
         {step > 1 ? <OutlineButton onClick={() => { setError(null); setStep(step - 1); }}>Back</OutlineButton> : <span />}
-        {step < 3 ? <PrimaryButton onClick={next}>Continue</PrimaryButton> : <PrimaryButton busy={busy} onClick={submit}>Start free trial</PrimaryButton>}
+        {step < 3 ? <PrimaryButton onClick={next}>Continue</PrimaryButton> : <PrimaryButton busy={busy} onClick={submit}>{plans?.find((p) => p.id === form.planId)?.priceMonthly === 0 ? "Create free store" : "Start free trial"}</PrimaryButton>}
       </div>
       <p className="mt-8 text-center text-sm text-gray-500">Already have an account? <Link href="/admin/login" className="font-medium text-brand-500">Sign in</Link></p>
     </div>

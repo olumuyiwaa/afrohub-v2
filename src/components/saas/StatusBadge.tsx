@@ -13,6 +13,8 @@ const MAP: Record<string, Color> = {
   paid: "success", unpaid: "warning", failed: "error",
   // products
   draft: "light", out_of_stock: "error",
+  // coupons
+  disabled: "light", expired: "light", used_up: "warning",
   // team
   invited: "warning",
 };

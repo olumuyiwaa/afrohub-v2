@@ -11,6 +11,8 @@ const NEXT_STEPS: Record<string, string> = {
   card: "Your demo card payment went through. No real money was taken.",
 };
 
+const usd = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
+
 export default function OrderConfirmation({ orderId }: { orderId: string }) {
   const ctx = useStore();
   const [order, setOrder] = useState<Order | null>(null);
@@ -67,9 +69,15 @@ export default function OrderConfirmation({ orderId }: { orderId: string }) {
                   <p className="text-dark">${i.qty * i.price}</p>
                 </div>
               ))}
+              {order.discount ? (
+                <div className="flex items-center justify-between px-5 py-4 border-b border-[color:var(--line)]">
+                  <p className="text-dark">Discount{order.couponCode ? ` (${order.couponCode})` : ""}</p>
+                  <p className="text-dark">−{usd(order.discount)}</p>
+                </div>
+              ) : null}
               <div className="flex items-center justify-between px-5 py-4">
                 <p className="font-medium text-dark">Total</p>
-                <p className="font-medium text-dark">${order.total}</p>
+                <p className="font-medium text-dark">{usd(order.total)}</p>
               </div>
             </div>
 
@@ -79,7 +87,10 @@ export default function OrderConfirmation({ orderId }: { orderId: string }) {
               <div className="sm:col-span-2"><dt className="text-dark-4">What happens next</dt><dd className="text-dark">{order.paymentMethod ? NEXT_STEPS[order.paymentMethod] : ""}</dd></div>
             </dl>
 
-            <div className="text-center">
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link href={href(`/invoice/${order.id}`)} className="inline-flex h-12 items-center rounded-full px-8 font-medium text-dark ring-1 ring-inset ring-[color:var(--line)] hover:bg-[color:var(--tint)]">
+                View receipt
+              </Link>
               <Link href={href("/shop")} className="inline-flex h-12 items-center font-medium text-white bg-blue px-9 rounded-full ease-out duration-200 hover:brightness-90">
                 Continue shopping
               </Link>

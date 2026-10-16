@@ -2,11 +2,11 @@
 import { useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
-import { listOrders, updateOrderStatus } from "@/services/business";
+import { getBusinessProfile, listOrders, markReceiptSent, updateOrderStatus } from "@/services/business";
 import { ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import DataTable, { type Column } from "@/components/saas/DataTable";
 import StatusBadge, { label } from "@/components/saas/StatusBadge";
-import { inputCls, OutlineButton } from "@/components/saas/Form";
+import { inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import { Modal } from "@/components/ui/modal";
 import { money, shortDate } from "@/lib/format";
 import type { Order, OrderStatus } from "@/types/saas";
@@ -17,12 +17,28 @@ export default function OrdersPage() {
   const { user } = useAuth();
   const bid = user!.businessId!;
   const { data, loading, error, reload } = useAsync(() => listOrders(bid), [bid]);
+  const { data: profile } = useAsync(() => getBusinessProfile(bid), [bid]);
+  const slug = profile?.slug ?? "";
   const [selected, setSelected] = useState<Order | null>(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   if (loading) return <PageLoading />;
   if (error || !data) return <ErrorNote message={error ?? "Could not load orders."} onRetry={reload} />;
+
+  const sendReceipt = async () => {
+    if (!selected) return;
+    setBusy(true);
+    setActionError(null);
+    try {
+      setSelected(await markReceiptSent(bid, selected.id));
+      reload();
+    } catch (e) {
+      setActionError(e instanceof Error ? e.message : "Could not send receipt.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const setStatus = async (status: OrderStatus) => {
     if (!selected) return;
@@ -78,6 +94,11 @@ export default function OrdersPage() {
                   <span className="text-gray-600 dark:text-gray-400">{money(i.qty * i.price)}</span>
                 </li>
               ))}
+              {selected.discount ? (
+                <li className="flex justify-between px-4 py-3 text-theme-sm text-success-600">
+                  <span>Discount{selected.couponCode ? ` (${selected.couponCode})` : ""}</span><span>−{money(selected.discount)}</span>
+                </li>
+              ) : null}
               <li className="flex justify-between px-4 py-3 text-theme-sm font-semibold text-gray-800 dark:text-white/90">
                 <span>Total</span><span>{money(selected.total)}</span>
               </li>
@@ -106,7 +127,20 @@ export default function OrdersPage() {
               </select>
             </label>
             {actionError && <ErrorNote message={actionError} />}
-            <div className="flex justify-end"><OutlineButton onClick={() => setSelected(null)}>Close</OutlineButton></div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-theme-xs text-gray-500">
+                {selected.receiptSentAt ? `Receipt sent ${shortDate(selected.receiptSentAt)}` : "Receipt not sent yet"}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <a href={`/s/${slug}/invoice/${selected.id}`} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:text-gray-400 dark:ring-gray-700">
+                  View invoice
+                </a>
+                <OutlineButton disabled={busy || !selected.customerEmail} onClick={sendReceipt}>
+                  {selected.receiptSentAt ? "Resend receipt" : "Send receipt"}
+                </OutlineButton>
+                <PrimaryButton onClick={() => setSelected(null)}>Close</PrimaryButton>
+              </div>
+            </div>
           </div>
         )}
       </Modal>

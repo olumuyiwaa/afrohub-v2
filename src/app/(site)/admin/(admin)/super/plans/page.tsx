@@ -6,6 +6,7 @@ import { Card, ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import { Modal } from "@/components/ui/modal";
 import { money } from "@/lib/format";
+import { formatCurrency, planAmount } from "@/lib/currency";
 import type { Plan } from "@/types/saas";
 
 type PlanRow = Plan & { subscribers: number };
@@ -31,6 +32,10 @@ export default function PlansPage() {
       description: String(f.get("description")).trim(),
       priceMonthly: num(f.get("priceMonthly")),
       priceYearly: num(f.get("priceYearly")),
+      localPrices: {
+        ...editing.localPrices,
+        NGN: { monthly: num(f.get("ngnMonthly")), yearly: num(f.get("ngnYearly")) },
+      },
       transactionFeePct: num(f.get("fee")),
       limits: {
         products: num(f.get("products")),
@@ -59,7 +64,7 @@ export default function PlansPage() {
   return (
     <>
       <PageHeader title="Plans" subtitle="Pricing tiers businesses can subscribe to. Use -1 for unlimited." />
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 md:gap-6">
         {data.map((p: PlanRow) => (
           <Card key={p.id} className={`flex flex-col p-6 ${p.highlighted ? "ring-2 ring-brand-500" : ""}`}>
             <div className="flex items-start justify-between">
@@ -68,9 +73,11 @@ export default function PlansPage() {
             </div>
             <p className="mt-1 text-theme-sm text-gray-500">{p.description}</p>
             <p className="mt-4 text-3xl font-bold text-gray-800 dark:text-white/90">
-              {money(p.priceMonthly)}<span className="text-base font-normal text-gray-500"> / mo</span>
+              {p.priceMonthly === 0 ? "Free" : <>{formatCurrency(planAmount(p, "monthly", "NGN"), "NGN")}<span className="text-base font-normal text-gray-500"> / mo</span></>}
             </p>
-            <p className="text-theme-xs text-gray-500">{money(p.priceYearly)} billed yearly · {p.transactionFeePct}% transaction fee</p>
+            <p className="text-theme-xs text-gray-500">
+              {p.priceMonthly === 0 ? "No card needed" : `${money(p.priceMonthly)} / mo in USD · ${formatCurrency(planAmount(p, "yearly", "NGN"), "NGN")} yearly`} · {p.transactionFeePct}% transaction fee
+            </p>
             <ul className="mt-5 flex-1 space-y-2 text-theme-sm text-gray-600 dark:text-gray-400">
               {p.features.map((f) => (
                 <li key={f} className="flex gap-2"><span className="text-success-500">✓</span>{f}</li>
@@ -93,6 +100,8 @@ export default function PlansPage() {
               <Field label="Transaction fee (%)"><input name="fee" type="number" step="0.1" min="0" defaultValue={editing.transactionFeePct} className={inputCls} /></Field>
               <Field label="Monthly price (USD)"><input name="priceMonthly" type="number" min="0" defaultValue={editing.priceMonthly} className={inputCls} /></Field>
               <Field label="Yearly price (USD)"><input name="priceYearly" type="number" min="0" defaultValue={editing.priceYearly} className={inputCls} /></Field>
+              <Field label="Monthly price (NGN)"><input name="ngnMonthly" type="number" min="0" defaultValue={editing.localPrices?.NGN?.monthly ?? 0} className={inputCls} /></Field>
+              <Field label="Yearly price (NGN)"><input name="ngnYearly" type="number" min="0" defaultValue={editing.localPrices?.NGN?.yearly ?? 0} className={inputCls} /></Field>
               <Field label="Product limit"><input name="products" type="number" min="-1" defaultValue={editing.limits.products} className={inputCls} /></Field>
               <Field label="Team member limit"><input name="staff" type="number" min="-1" defaultValue={editing.limits.staff} className={inputCls} /></Field>
               <Field label="Orders / month limit"><input name="orders" type="number" min="-1" defaultValue={editing.limits.ordersPerMonth} className={inputCls} /></Field>

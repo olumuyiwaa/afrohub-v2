@@ -1,7 +1,7 @@
 // Public storefront services (what a shopper at /s/[slug] can do).
 // Like the other services these only touch the mock db and can be replaced
 // by real API calls later.
-import type { Order, OrderItem, PaymentMethod, Product, PublicStore } from "@/types/saas";
+import type { Coupon, Order, OrderItem, PaymentMethod, Product, PublicStore } from "@/types/saas";
 import { db, delay, ServiceError, uid } from "./db";
 
 export const STORE_UNAVAILABLE = "STORE_UNAVAILABLE";
@@ -36,12 +36,35 @@ export async function listStoreProducts(businessId: string): Promise<Product[]> 
     .map((p) => ({ ...p }));
 }
 
+/** Why a coupon can't be used for this subtotal, or the discount it gives. */
+function evaluateCoupon(c: Coupon | undefined, subtotal: number): { discount: number } | { error: string } {
+  if (!c || c.status !== "active") return { error: "That code isn't valid." };
+  if (c.expiresAt && new Date(c.expiresAt).getTime() < Date.now()) return { error: "That code has expired." };
+  if (c.maxUses != null && c.usedCount >= c.maxUses) return { error: "That code has been fully used." };
+  if (c.minOrder && subtotal < c.minOrder) return { error: `Spend at least $${c.minOrder} to use this code.` };
+  const raw = c.type === "percent" ? (subtotal * c.value) / 100 : c.value;
+  return { discount: Math.round(Math.min(raw, subtotal) * 100) / 100 };
+}
+
+const findCoupon = (businessId: string, code: string) =>
+  db.coupons.find((c) => c.businessId === businessId && c.code.toLowerCase() === code.trim().toLowerCase());
+
+/** Checks a code against the cart subtotal without using it up. */
+export async function validateCoupon(businessId: string, code: string, subtotal: number): Promise<{ code: string; discount: number }> {
+  await delay(300);
+  const c = findCoupon(businessId, code);
+  const r = evaluateCoupon(c, subtotal);
+  if ("error" in r) throw new ServiceError(r.error);
+  return { code: c!.code, discount: r.discount };
+}
+
 export interface PlaceOrderInput {
   businessId: string;
   customer: { name: string; email: string; phone: string };
   shippingAddress: string;
   notes?: string;
   paymentMethod: PaymentMethod;
+  couponCode?: string;
   items: { productId: string | number; qty: number }[];
 }
 
@@ -90,7 +113,16 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     qty,
     price: product.price,
   }));
-  const total = items.reduce((s, i) => s + i.qty * i.price, 0);
+  const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
+  let discount = 0;
+  let coupon: Coupon | undefined;
+  if (input.couponCode) {
+    coupon = findCoupon(biz.id, input.couponCode);
+    const r = evaluateCoupon(coupon, subtotal);
+    if ("error" in r) throw new ServiceError(r.error);
+    discount = r.discount;
+  }
+  const total = Math.round((subtotal - discount) * 100) / 100;
   const paid = input.paymentMethod === "card"; // demo card flow succeeds instantly
 
   // customer: reuse by email, otherwise create
@@ -137,6 +169,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     shippingAddress: input.shippingAddress.trim(),
     notes: input.notes?.trim() || undefined,
     paymentMethod: input.paymentMethod,
+    ...(coupon ? { couponCode: coupon.code, discount } : {}),
   };
   db.orders.unshift(order);
 
@@ -146,6 +179,7 @@ export async function placeOrder(input: PlaceOrderInput): Promise<Order> {
     product.sold += qty;
     if (product.stock <= 0) product.status = "out_of_stock";
   }
+  if (coupon) coupon.usedCount += 1;
   biz.stats.orders += 1;
   if (paid) {
     biz.stats.revenue += total;

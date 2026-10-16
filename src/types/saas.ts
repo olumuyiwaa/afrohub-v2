@@ -19,6 +19,8 @@ export type SubscriptionStatus =
 
 export type BillingCycle = "monthly" | "yearly";
 
+export type Currency = "NGN" | "GHS" | "KES" | "USD";
+
 export interface PlanLimits {
   products: number; // -1 = unlimited
   staff: number;
@@ -37,6 +39,8 @@ export interface Plan {
   features: string[];
   highlighted?: boolean;
   isActive: boolean;
+  /** Hand-set local prices so each market sees a clean number (USD stays the accounting currency). */
+  localPrices?: Partial<Record<Currency, { monthly: number; yearly: number }>>;
 }
 
 export interface BusinessStats {
@@ -143,6 +147,28 @@ export interface Order {
   shippingAddress?: string;
   notes?: string;
   paymentMethod?: PaymentMethod;
+  /** Shopper discount applied at checkout; `total` is already net of it. */
+  couponCode?: string;
+  discount?: number;
+  receiptSentAt?: string;
+}
+
+export type CouponType = "percent" | "fixed";
+export type CouponStatus = "active" | "disabled";
+
+export interface Coupon {
+  id: string;
+  businessId: string;
+  code: string;
+  type: CouponType;
+  /** percent: 1-100, fixed: amount off */
+  value: number;
+  minOrder?: number;
+  maxUses?: number;
+  usedCount: number;
+  expiresAt?: string;
+  status: CouponStatus;
+  createdAt: string;
 }
 
 /** What a shopper is allowed to see about a business. */

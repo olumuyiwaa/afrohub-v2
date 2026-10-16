@@ -9,7 +9,7 @@ import { useStore } from "@/app/context/StoreContext";
 import { removeAllItemsFromCart, selectTotalPrice } from "@/redux/features/cart-slice";
 import { AppDispatch, useAppSelector } from "@/redux/store";
 import { useSelector } from "react-redux";
-import { placeOrder } from "@/services/store";
+import { placeOrder, validateCoupon } from "@/services/store";
 import type { PaymentMethod } from "@/types/saas";
 
 const input =
@@ -20,6 +20,8 @@ const METHODS: { id: PaymentMethod; title: string; hint: string }[] = [
   { id: "bank", title: "Direct bank transfer", hint: "The business will contact you with their bank details." },
   { id: "card", title: "Card (demo)", hint: "Demo only — no real payment is taken." },
 ];
+
+const usd = (n: number) => `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
 
 export default function StoreCheckout() {
   const ctx = useStore();
@@ -33,6 +35,10 @@ export default function StoreCheckout() {
     address: "", city: "", country: ctx?.store?.country ?? "", notes: "",
   });
   const [payment, setPayment] = useState<PaymentMethod>("cod");
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -55,6 +61,24 @@ export default function StoreCheckout() {
     );
   }
 
+  const discount = coupon?.discount ?? 0;
+  const payable = Math.round((total - discount) * 100) / 100;
+
+  const applyCoupon = async () => {
+    if (!couponInput.trim()) return;
+    setCouponBusy(true);
+    setCouponMsg(null);
+    try {
+      setCoupon(await validateCoupon(store.id, couponInput, total));
+      setCouponInput("");
+    } catch (err) {
+      setCoupon(null);
+      setCouponMsg(err instanceof Error ? err.message : "Could not check that code.");
+    } finally {
+      setCouponBusy(false);
+    }
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -71,6 +95,7 @@ export default function StoreCheckout() {
         shippingAddress: `${f.address.trim()}, ${f.city.trim()}, ${f.country.trim()}`,
         notes: f.notes,
         paymentMethod: payment,
+        couponCode: coupon?.code,
         items: items.map((i) => ({ productId: i.id, qty: i.quantity })),
       });
       dispatch(removeAllItemsFromCart());
@@ -159,9 +184,37 @@ export default function StoreCheckout() {
                       <p className="text-dark">Delivery</p>
                       <p className="text-dark text-right">Arranged by {store.name}</p>
                     </div>
+                    <div className="py-5 border-b border-[color:var(--line)]">
+                      {coupon ? (
+                        <div className="flex items-center justify-between text-dark">
+                          <p>
+                            Discount <span className="rounded-full bg-[color:var(--tint)] px-2.5 py-0.5 text-custom-sm font-medium">{coupon.code}</span>{" "}
+                            <button type="button" onClick={() => setCoupon(null)} className="text-custom-sm underline">Remove</button>
+                          </p>
+                          <p className="text-right">−{usd(discount)}</p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex gap-2">
+                            <input
+                              aria-label="Discount code"
+                              className={input}
+                              placeholder="Discount code"
+                              value={couponInput}
+                              onChange={(e) => setCouponInput(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); applyCoupon(); } }}
+                            />
+                            <button type="button" onClick={applyCoupon} disabled={couponBusy || !couponInput.trim()} className="shrink-0 rounded-xl px-5 font-medium disabled:opacity-50" style={{ background: "var(--brand)", color: "var(--brand-fg)" }}>
+                              {couponBusy ? "…" : "Apply"}
+                            </button>
+                          </div>
+                          {couponMsg && <p role="alert" className="mt-2 text-custom-sm text-red-dark">{couponMsg}</p>}
+                        </>
+                      )}
+                    </div>
                     <div className="flex items-center justify-between pt-5">
                       <p className="font-medium text-lg text-dark">Total</p>
-                      <p className="font-medium text-lg text-dark text-right">${total}</p>
+                      <p className="font-medium text-lg text-dark text-right">{usd(payable)}</p>
                     </div>
                   </div>
                 </div>
@@ -211,7 +264,7 @@ export default function StoreCheckout() {
                   disabled={busy}
                   className="w-full flex justify-center font-medium text-white bg-blue h-14 items-center px-6 rounded-full ease-out duration-200 hover:brightness-90 mt-7.5 disabled:opacity-60"
                 >
-                  {busy ? "Placing your order…" : `Place order · $${total}`}
+                  {busy ? "Placing your order…" : `Place order · ${usd(payable)}`}
                 </button>
               </div>
             </div>

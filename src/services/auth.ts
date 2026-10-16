@@ -46,6 +46,7 @@ export async function registerBusiness(p: RegisterPayload): Promise<AuthUser> {
   let n = 2;
   while (db.businesses.some((b) => b.slug === slug)) slug = `${baseSlug}-${n++}`;
 
+  const free = plan.priceMonthly === 0;
   const now = new Date();
   const biz: Business = {
     id: uid("biz"),
@@ -59,7 +60,7 @@ export async function registerBusiness(p: RegisterPayload): Promise<AuthUser> {
     city: p.city,
     brandColor: "#465fff",
     description: "",
-    status: "trial",
+    status: free ? "active" : "trial",
     planId: plan.id,
     joinedAt: now.toISOString(),
     stats: { products: 0, orders: 0, customers: 0, revenue: 0 },
@@ -71,12 +72,12 @@ export async function registerBusiness(p: RegisterPayload): Promise<AuthUser> {
     id: uid("sub"),
     businessId: biz.id,
     planId: plan.id,
-    status: "trialing",
+    status: free ? "active" : "trialing",
     cycle: p.cycle,
     amount: p.cycle === "yearly" ? plan.priceYearly : plan.priceMonthly,
     startedAt: now.toISOString(),
     currentPeriodEnd: trialEnds,
-    trialEndsAt: trialEnds,
+    trialEndsAt: free ? undefined : trialEnds,
   };
   db.subscriptions.unshift(sub);
 

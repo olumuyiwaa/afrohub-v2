@@ -6,7 +6,7 @@
 import * as seed from "@/mock/seed";
 import type { AuthUser } from "@/types/saas";
 
-const STORAGE_KEY = "afrohub:db:v1";
+const STORAGE_KEY = "afrohub:db:v2";
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 
 const fresh = () => ({
@@ -17,6 +17,7 @@ const fresh = () => ({
   products: clone(seed.products),
   orders: clone(seed.orders),
   customers: clone(seed.customers),
+  coupons: clone(seed.coupons),
   team: clone(seed.team),
   users: clone(seed.demoAccounts) as AuthUser[],
 });
@@ -30,7 +31,7 @@ function load(): DB {
     if (raw) {
       const parsed = JSON.parse(raw);
       // basic shape check so a corrupted/old blob falls back to seed data
-      if (parsed && Array.isArray(parsed.businesses) && Array.isArray(parsed.plans) && Array.isArray(parsed.users)) {
+      if (parsed && Array.isArray(parsed.businesses) && Array.isArray(parsed.plans) && Array.isArray(parsed.users) && Array.isArray(parsed.coupons)) {
         return parsed as DB;
       }
     }

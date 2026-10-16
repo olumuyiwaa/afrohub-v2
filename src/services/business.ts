@@ -2,6 +2,7 @@
 // is exactly how the real API will authorise requests.
 import type {
   Business,
+  Coupon,
   BusinessOverview,
   BusinessUsage,
   Customer,
@@ -256,6 +257,10 @@ export async function changePlan(
   sub.planId = plan.id;
   sub.cycle = cycle;
   sub.amount = cycle === "yearly" ? plan.priceYearly : plan.priceMonthly;
+  if (sub.amount === 0) {
+    sub.status = "active";
+    sub.trialEndsAt = undefined;
+  }
 }
 
 // ---------- store profile ----------
@@ -276,4 +281,56 @@ export async function updateBusinessProfile(
   if (!biz) throw new ServiceError("Business not found.");
   Object.assign(biz, patch);
   return { ...biz };
+}
+
+// ---------- discounts & coupons ----------
+
+export type CouponInput = Pick<Coupon, "code" | "type" | "value" | "minOrder" | "maxUses" | "expiresAt">;
+
+export async function listCoupons(businessId: string): Promise<Coupon[]> {
+  await delay(250);
+  return db.coupons.filter((c) => c.businessId === businessId).map((c) => ({ ...c }));
+}
+
+export async function saveCoupon(businessId: string, id: string | null, input: CouponInput): Promise<Coupon> {
+  await delay(400);
+  const code = input.code.trim().toUpperCase();
+  if (!/^[A-Z0-9-]{3,20}$/.test(code)) throw new ServiceError("Use 3–20 letters, numbers or dashes for the code.");
+  if (!(input.value > 0)) throw new ServiceError("Enter a discount greater than zero.");
+  if (input.type === "percent" && input.value > 100) throw new ServiceError("A percentage can't be more than 100.");
+  if (db.coupons.some((c) => c.businessId === businessId && c.code === code && c.id !== id)) {
+    throw new ServiceError("You already have a code with that name.");
+  }
+  if (id) {
+    const c = db.coupons.find((x) => x.id === id && x.businessId === businessId);
+    if (!c) throw new ServiceError("Coupon not found.");
+    Object.assign(c, input, { code });
+    return { ...c };
+  }
+  const c: Coupon = { id: uid("cpn"), businessId, ...input, code, usedCount: 0, status: "active", createdAt: new Date().toISOString() };
+  db.coupons.unshift(c);
+  return { ...c };
+}
+
+export async function setCouponStatus(businessId: string, id: string, status: Coupon["status"]): Promise<void> {
+  await delay(250);
+  const c = db.coupons.find((x) => x.id === id && x.businessId === businessId);
+  if (!c) throw new ServiceError("Coupon not found.");
+  c.status = status;
+}
+
+export async function deleteCoupon(businessId: string, id: string): Promise<void> {
+  await delay(250);
+  const i = db.coupons.findIndex((x) => x.id === id && x.businessId === businessId);
+  if (i >= 0) db.coupons.splice(i, 1);
+}
+
+// ---------- receipts ----------
+
+export async function markReceiptSent(businessId: string, orderId: string): Promise<Order> {
+  await delay(500);
+  const o = db.orders.find((x) => x.id === orderId && x.businessId === businessId);
+  if (!o) throw new ServiceError("Order not found.");
+  o.receiptSentAt = new Date().toISOString();
+  return { ...o };
 }

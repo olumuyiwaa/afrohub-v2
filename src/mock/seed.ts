@@ -4,6 +4,7 @@
 
 import type {
   Business,
+  Coupon,
   BusinessStatus,
   Customer,
   Invoice,
@@ -45,40 +46,72 @@ const pad = (n: number, len = 3) => String(n).padStart(len, "0");
 
 export const plans: Plan[] = [
   {
+    id: "plan_basic",
+    name: "Basic",
+    description: "Free forever. Open a store and make your first sales.",
+    priceMonthly: 0,
+    priceYearly: 0,
+    transactionFeePct: 4,
+    limits: { products: 25, staff: 1, ordersPerMonth: 30, storageGb: 1 },
+    features: [
+      "Branded online storefront",
+      "Up to 25 products",
+      "30 orders / month",
+      "Discount codes",
+      "Order invoices & receipts",
+      "Community support",
+    ],
+    localPrices: {
+      NGN: { monthly: 0, yearly: 0 },
+      GHS: { monthly: 0, yearly: 0 },
+      KES: { monthly: 0, yearly: 0 },
+    },
+    isActive: true,
+  },
+  {
     id: "plan_starter",
     name: "Starter",
     description: "Everything a new business needs to start selling online.",
-    priceMonthly: 19,
-    priceYearly: 190,
+    priceMonthly: 3,
+    priceYearly: 30,
     transactionFeePct: 3,
-    limits: { products: 50, staff: 2, ordersPerMonth: 100, storageGb: 2 },
+    limits: { products: 300, staff: 2, ordersPerMonth: 300, storageGb: 3 },
     features: [
-      "Branded online storefront",
-      "Up to 50 products",
+      "Everything in Basic",
+      "Up to 300 products",
       "2 team members",
-      "100 orders / month",
+      "300 orders / month",
       "Basic sales reports",
       "Email support",
     ],
+    localPrices: {
+      NGN: { monthly: 4500, yearly: 45000 },
+      GHS: { monthly: 45, yearly: 450 },
+      KES: { monthly: 450, yearly: 4500 },
+    },
     isActive: true,
   },
   {
     id: "plan_growth",
     name: "Growth",
     description: "For growing shops that need more room and better insight.",
-    priceMonthly: 49,
-    priceYearly: 490,
+    priceMonthly: 6,
+    priceYearly: 60,
     transactionFeePct: 2,
-    limits: { products: 500, staff: 5, ordersPerMonth: 1000, storageGb: 10 },
+    limits: { products: 1500, staff: 5, ordersPerMonth: 2000, storageGb: 10 },
     features: [
       "Everything in Starter",
-      "Up to 500 products",
+      "Up to 1,500 products",
       "5 team members",
-      "1,000 orders / month",
-      "Discount codes & promotions",
+      "2,000 orders / month",
       "Advanced analytics",
       "Priority support",
     ],
+    localPrices: {
+      NGN: { monthly: 9500, yearly: 95000 },
+      GHS: { monthly: 95, yearly: 950 },
+      KES: { monthly: 950, yearly: 9500 },
+    },
     highlighted: true,
     isActive: true,
   },
@@ -86,8 +119,8 @@ export const plans: Plan[] = [
     id: "plan_scale",
     name: "Scale",
     description: "High-volume sellers with teams and custom needs.",
-    priceMonthly: 129,
-    priceYearly: 1290,
+    priceMonthly: 15,
+    priceYearly: 150,
     transactionFeePct: 1,
     limits: { products: -1, staff: 15, ordersPerMonth: -1, storageGb: 50 },
     features: [
@@ -98,6 +131,11 @@ export const plans: Plan[] = [
       "API access",
       "Dedicated account manager",
     ],
+    localPrices: {
+      NGN: { monthly: 22000, yearly: 220000 },
+      GHS: { monthly: 220, yearly: 2200 },
+      KES: { monthly: 2200, yearly: 22000 },
+    },
     isActive: true,
   },
 ];
@@ -123,11 +161,11 @@ const bizSeeds: BizSeed[] = [
   { name: "Shea Glow", category: "Beauty & Wellness", owner: "Zainab Bello", country: "Nigeria", city: "Abuja", color: "#12b76a", plan: "plan_growth", status: "active" },
   { name: "Savannah Spice", category: "Food & Groceries", owner: "Fatou Diallo", country: "Senegal", city: "Dakar", color: "#f04438", plan: "plan_starter", status: "active" },
   { name: "Kilimanjaro Coffee", category: "Coffee & Tea", owner: "Neema Mushi", country: "Tanzania", city: "Arusha", color: "#7a5af8", plan: "plan_growth", status: "active" },
-  { name: "Baobab Crafts", category: "Crafts & Decor", owner: "Tendai Moyo", country: "Zimbabwe", city: "Harare", color: "#0ba5ec", plan: "plan_starter", status: "active" },
+  { name: "Baobab Crafts", category: "Crafts & Decor", owner: "Tendai Moyo", country: "Zimbabwe", city: "Harare", color: "#0ba5ec", plan: "plan_basic", status: "active" },
   { name: "Ankara Avenue", category: "Fashion & Textiles", owner: "Chidinma Eze", country: "Nigeria", city: "Port Harcourt", color: "#ee46bc", plan: "plan_scale", status: "active" },
   { name: "Zuri Beauty", category: "Beauty & Wellness", owner: "Zuri Kamau", country: "Kenya", city: "Nairobi", color: "#fb6514", plan: "plan_growth", status: "active" },
-  { name: "Jollof Junction", category: "Food & Groceries", owner: "Tunde Bakare", country: "Nigeria", city: "Ibadan", color: "#d92d20", plan: "plan_starter", status: "active" },
-  { name: "Accra Beads", category: "Jewellery", owner: "Efua Asante", country: "Ghana", city: "Kumasi", color: "#dd2590", plan: "plan_starter", status: "active" },
+  { name: "Jollof Junction", category: "Food & Groceries", owner: "Tunde Bakare", country: "Nigeria", city: "Ibadan", color: "#d92d20", plan: "plan_basic", status: "active" },
+  { name: "Accra Beads", category: "Jewellery", owner: "Efua Asante", country: "Ghana", city: "Kumasi", color: "#dd2590", plan: "plan_basic", status: "active" },
   { name: "Nile Textiles", category: "Fashion & Textiles", owner: "Omar Hassan", country: "Egypt", city: "Cairo", color: "#3641f5", plan: "plan_growth", status: "active" },
   { name: "Ubuntu Wellness", category: "Beauty & Wellness", owner: "Thabo Nkosi", country: "South Africa", city: "Johannesburg", color: "#039855", plan: "plan_growth", status: "active" },
   { name: "Lagos Leather Works", category: "Fashion & Textiles", owner: "Segun Adeyemi", country: "Nigeria", city: "Lagos", color: "#b54708", plan: "plan_scale", status: "active" },
@@ -396,7 +434,7 @@ businesses.forEach((biz, idx) => {
       cancelledAt: status === "cancelled" ? daysAgo(int(5, 30)) : undefined,
     });
 
-    if (status !== "trialing") {
+    if (status !== "trialing" && amount > 0) {
       const periods = Math.min(12, Math.max(1, Math.floor(startedDays / periodLen) + 1));
       for (let k = 0; k < periods; k++) {
         const issued = intoPeriod + k * periodLen;
@@ -425,6 +463,33 @@ invoices.sort((a, b) => +new Date(b.issuedAt) - +new Date(a.issuedAt));
 // ---------- demo accounts ----------
 
 export const DEMO_PASSWORD = "demo1234";
+
+// ---------- coupons ----------
+
+export const coupons: Coupon[] = [];
+businesses.forEach((biz, idx) => {
+  if (biz.status === "pending" || biz.planId === "plan_basic" && idx !== 0) return;
+  const mk = (code: string, type: Coupon["type"], value: number, extra: Partial<Coupon> = {}) =>
+    coupons.push({
+      id: `cpn_${biz.id.slice(4)}_${code.toLowerCase()}`,
+      businessId: biz.id,
+      code,
+      type,
+      value,
+      usedCount: 0,
+      status: "active",
+      createdAt: daysAgo(int(10, 120)),
+      ...extra,
+    });
+  if (idx === 0) {
+    mk("WELCOME10", "percent", 10, { usedCount: 14 });
+    mk("SAVE5", "fixed", 5, { minOrder: 50, usedCount: 6 });
+    mk("EID25", "percent", 25, { maxUses: 50, usedCount: 50, expiresAt: daysAgo(20) });
+    mk("LOYAL15", "percent", 15, { status: "disabled", usedCount: 3 });
+  } else if (biz.status === "active" && chance(0.6)) {
+    mk("WELCOME10", "percent", 10, { usedCount: int(0, 12) });
+  }
+});
 
 export const demoAccounts = [
   {
