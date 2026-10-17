@@ -15,11 +15,13 @@ A multi-tenant SaaS platform that lets small African businesses subscribe, get t
 | Super admin | `/admin/super/*` | The Retailr team |
 | Public storefront | `/s/<slug>` | Shoppers |
 
-**Business admin:** dashboard with setup checklist, KPIs and needs-attention panel; products (up to 6 photos with a cover image, size/colour variants with their own stock and price); orders (status updates, invoice link, send receipt); customers (filter by group); record a sale (in person, WhatsApp, Instagram or phone sales with custom prices, discount, paid/owing and walk-in or saved customers; stock updates immediately); reports (sales over time, by channel and payment method, best sellers, top customers, money still owed); customer groups (automatic rules like "spent over X" or hand-picked); messages (email, SMS or WhatsApp to everyone or a group, with {{first_name}} personalisation; demo only, nothing is delivered); discounts and coupons; team; billing and plan changes; store settings.
+**Business admin:** dashboard with setup checklist, KPIs and needs-attention panel; products (up to 6 photos with a cover image, size/colour variants with their own stock and price, and up to 10 custom details such as Material or Density, with suggested names for the business type); categories the business creates and manages itself (rename moves its products, delete leaves them uncategorised); orders (status updates, invoice link, send receipt); customers (filter by group); record a sale (in person, WhatsApp, Instagram or phone sales with custom prices, discount, paid/owing and walk-in or saved customers; stock updates immediately); reports (sales over time, by channel and payment method, best sellers, top customers, money still owed); customer groups (automatic rules like "spent over X" or hand-picked); messages (email, SMS or WhatsApp to everyone or a group, with {{first_name}} personalisation; demo only, nothing is delivered); discounts and coupons; team; billing and plan changes; store settings (logo, currency, storefront theme, profile).
 
 **Super admin:** platform overview (MRR, churn, sign-ups, alerts); business approvals, suspend/reactivate; plans editor; subscriptions; invoices.
 
-**Storefront:** each business gets a store themed from its brand colour and showing its own logo, with a photo gallery on every product page (home, shop, product, cart, checkout, order confirmation, printable invoice/receipt). Only `active` and `trial` businesses are live; suspended or pending ones show an unavailable page.
+**Storefront:** each business gets a store with its own logo, categories and a photo gallery on every product page (home, shop, product, cart, checkout, order confirmation, printable invoice/receipt). Owners pick a **theme** under Store settings, and the store switches instantly (see Themes below). Only `active` and `trial` businesses are live; suspended or pending ones show an unavailable page.
+
+**Themes:** three storefront looks ship today, **Classic** (default; soft and rounded, follows the brand colour), **Showcase** (marketplace layout from the original template: boxed hero, filter sidebar) and **Atelier** (warm editorial boutique with big portrait photos, built from a real hair-store design). A theme can restyle any page, header or footer and anything it skips falls back to Classic. Adding a theme is a new folder under `src/themes/` plus one line in `src/themes/registry.ts`; see `src/themes/README.md`. Gating themes by plan is planned.
 
 **Pricing:** a free Basic plan plus Starter, Growth and Scale. Prices display in NGN, GHS, KES or USD via a currency switcher; platform accounting (MRR, invoices) stays in USD.
 
@@ -74,11 +76,12 @@ src/
       business/…          business admin pages
   components/
     saas/                 admin UI kit (cards, tables, dashboard widgets, pricing)
-    Store/                storefront components
+    Store/                Classic theme storefront components
+  themes/                 storefront themes (registry, classic, showcase, atelier)
   services/               async "API" layer over the mock database
   mock/seed.ts            deterministic seed data
   types/saas.ts           shared domain types
-  lib/                    currency, formatting, store theming
+  lib/                    currency, formatting, store theming, detail-name presets
   redux/                  cart state
 ```
 
@@ -94,6 +97,8 @@ UI code never touches data directly. It calls typed async functions in `src/serv
 - [x] Invoices and receipts
 - [x] Product variants and photo upload
 - [x] Customer groups and messaging
+- [x] Storefront themes, managed categories and product details
+- [ ] More themes, and gating themes by plan
 - [ ] Payment gateways and delivery integrations
 - [ ] Subdomain routing and custom domains
 - [ ] NestJS + Prisma backend
