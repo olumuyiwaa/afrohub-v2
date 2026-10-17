@@ -89,7 +89,7 @@ export default function StoreSettingsPage() {
   return (
     <>
       <PageHeader title="Store settings" subtitle="How your business appears to customers." />
-      <Card className="mb-6 max-w-3xl">
+      <Card className="mb-6 max-w-5xl">
         <CardHeader title="Your storefront" subtitle="Share this link with customers so they can shop with you." />
         <div className="space-y-3 p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-3">
@@ -126,7 +126,7 @@ export default function StoreSettingsPage() {
           )}
         </div>
       </Card>
-      <Card className="mb-6 max-w-3xl">
+      <Card className="mb-6 max-w-5xl">
         <CardHeader title="Logo" subtitle="Shown in your storefront header and on invoices and receipts." />
         <div className="space-y-3 p-5 sm:p-6">
           <div className="flex flex-wrap items-center gap-5">
@@ -167,11 +167,11 @@ export default function StoreSettingsPage() {
           {logoError && <ErrorNote message={logoError} />}
         </div>
       </Card>
-      <Card className="mb-6 max-w-3xl">
+      <Card className="mb-6 max-w-5xl">
         <CardHeader title="Storefront theme" subtitle="Change how your store looks to shoppers. Your products and settings stay the same." />
         <ThemePicker businessId={bid} current={data.theme} />
       </Card>
-      <Card className="mb-6 max-w-3xl">
+      <Card className="mb-6 max-w-5xl">
         <CardHeader title="Store currency" subtitle="Prices on your storefront, invoices and reports use this currency." />
         <form onSubmit={saveCurrency} className="space-y-3 p-5 sm:p-6">
           <Field label="Currency">
@@ -188,7 +188,7 @@ export default function StoreSettingsPage() {
           </div>
         </form>
       </Card>
-      <Card className="max-w-3xl">
+      <Card className="max-w-5xl">
         <CardHeader title="Business profile" subtitle="Shown on your storefront." />
         <form onSubmit={submit} className="space-y-4 p-5 sm:p-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
