@@ -3,7 +3,7 @@ import React from "react";
 import Link from "next/link";
 import ProductItem from "@/components/Common/ProductItem";
 import ProductThumb from "@/components/Common/ProductThumb";
-import ProductArt from "@/components/Store/ProductArt";
+import CategoryPicture from "@/components/Store/CategoryPicture";
 import { useStore } from "@/app/context/StoreContext";
 
 const Wrap = ({ children }: { children: React.ReactNode }) => <div className="store-container mx-auto w-full px-4 sm:px-8">{children}</div>;
@@ -65,8 +65,8 @@ export default function ShowcaseHome() {
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                   {categories.map((c) => (
                     <Link key={c} href={href(`/shop?category=${encodeURIComponent(c)}`)} className="group flex flex-col items-center text-center">
-                      <span className="mb-3 block h-28 w-28 overflow-hidden rounded-full bg-[#F2F3F8]">
-                        <ProductArt seed={c} color={products.find((p) => p.category === c)?.color ?? "#E5E7EB"} showInitial={false} />
+                      <span className="relative mb-3 block h-28 w-28 overflow-hidden rounded-full bg-[#F2F3F8]">
+                        <CategoryPicture name={c} />
                       </span>
                       <span className="font-medium text-dark ease-out duration-200 group-hover:text-blue">{c}</span>
                     </Link>

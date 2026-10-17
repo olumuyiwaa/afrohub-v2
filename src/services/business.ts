@@ -121,28 +121,32 @@ export async function listCategories(businessId: string): Promise<CategoryWithCo
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
-export async function createCategory(businessId: string, rawName: string): Promise<Category> {
+export async function createCategory(businessId: string, rawName: string, image?: string): Promise<Category> {
   await delay(250);
   const name = cleanCategoryName(rawName);
   if (db.categories.some((c) => c.businessId === businessId && c.name.toLowerCase() === name.toLowerCase())) {
     throw new ServiceError(`You already have a category called "${name}".`);
   }
-  const cat: Category = { id: uid("cat"), businessId, name, createdAt: new Date().toISOString() };
+  const cat: Category = { id: uid("cat"), businessId, name, ...(image ? { image } : {}), createdAt: new Date().toISOString() };
   db.categories.push(cat);
   return { ...cat };
 }
 
-/** Renaming also moves the category's products to the new name. */
-export async function renameCategory(businessId: string, id: string, rawName: string): Promise<Category> {
+/** Renaming also moves the category's products to the new name. `image`: data URL to set, null to remove, undefined to keep. */
+export async function updateCategory(businessId: string, id: string, patch: { name?: string; image?: string | null }): Promise<Category> {
   await delay(300);
   const cat = db.categories.find((c) => c.id === id && c.businessId === businessId);
   if (!cat) throw new ServiceError("Category not found.");
-  const name = cleanCategoryName(rawName);
-  if (db.categories.some((c) => c.id !== id && c.businessId === businessId && c.name.toLowerCase() === name.toLowerCase())) {
-    throw new ServiceError(`You already have a category called "${name}".`);
+  if (patch.name !== undefined) {
+    const name = cleanCategoryName(patch.name);
+    if (db.categories.some((c) => c.id !== id && c.businessId === businessId && c.name.toLowerCase() === name.toLowerCase())) {
+      throw new ServiceError(`You already have a category called "${name}".`);
+    }
+    for (const p of db.products) if (p.businessId === businessId && p.category === cat.name) p.category = name;
+    cat.name = name;
   }
-  for (const p of db.products) if (p.businessId === businessId && p.category === cat.name) p.category = name;
-  cat.name = name;
+  if (patch.image === null) cat.image = undefined;
+  else if (patch.image) cat.image = patch.image;
   return { ...cat };
 }
 

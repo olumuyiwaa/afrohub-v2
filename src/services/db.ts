@@ -10,7 +10,7 @@ const STORAGE_KEY = "retailr:db:v2";
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 
 /** One category per distinct product category a business already uses (seed data and older saved data predate managed categories). */
-function deriveCategories(products: { businessId: string; category: string }[]): Category[] {
+function deriveCategories(products: { businessId: string; category: string; image?: string }[]): Category[] {
   const seen = new Set<string>();
   const out: Category[] = [];
   for (const p of products) {
@@ -18,7 +18,7 @@ function deriveCategories(products: { businessId: string; category: string }[]):
     const key = `${p.businessId}|${name.toLowerCase()}`;
     if (!name || seen.has(key)) continue;
     seen.add(key);
-    out.push({ id: `cat_${out.length + 1}_${Math.random().toString(36).slice(2, 7)}`, businessId: p.businessId, name, createdAt: new Date(0).toISOString() });
+    out.push({ id: `cat_${out.length + 1}_${Math.random().toString(36).slice(2, 7)}`, businessId: p.businessId, name, ...(p.image ? { image: p.image } : {}), createdAt: new Date(0).toISOString() });
   }
   return out.sort((a, b) => a.name.localeCompare(b.name));
 }

@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { useStore } from "@/app/context/StoreContext";
 import AtelierCard, { Photo } from "./Card";
+import CategoryPicture from "@/components/Store/CategoryPicture";
 import { whatsappLink } from "./whatsapp";
 
 const Wrap = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
@@ -81,7 +82,7 @@ export default function AtelierHome() {
               <div className="grid gap-5 sm:grid-cols-3">
                 {tiles.map((t) => (
                   <Link key={t.name} href={href(`/shop?category=${encodeURIComponent(t.name)}`)} className="group relative block overflow-hidden rounded-md">
-                    <Photo item={t.item} className="aspect-[4/5] w-full transition-transform duration-500 group-hover:scale-[1.03]" />
+                    <div className="relative aspect-[4/5] w-full overflow-hidden bg-[color:var(--tint)] transition-transform duration-500 group-hover:scale-[1.03]"><CategoryPicture name={t.name} /></div>
                     <span className="absolute bottom-3 left-3 rounded bg-white px-3 py-1.5 text-custom-sm font-medium text-dark">{t.name}</span>
                   </Link>
                 ))}

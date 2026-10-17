@@ -84,6 +84,8 @@ export interface Category {
   id: string;
   businessId: string;
   name: string;
+  /** Cover picture shown on the storefront (data URL or path). */
+  image?: string;
   createdAt: string;
 }
 

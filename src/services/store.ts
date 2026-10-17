@@ -40,14 +40,14 @@ export async function listStoreProducts(businessId: string): Promise<Product[]> 
     .map((p) => ({ ...p }));
 }
 
-/** The business's own categories that currently have something on sale, in alphabetical order. */
-export async function listStoreCategories(businessId: string): Promise<string[]> {
+/** The business's own categories that currently have something on sale, alphabetically, with their pictures. */
+export async function listStoreCategories(businessId: string): Promise<{ name: string; image?: string }[]> {
   await delay(100);
   const live = new Set(db.products.filter((p) => p.businessId === businessId && p.status !== "draft").map((p) => p.category));
   return db.categories
     .filter((c) => c.businessId === businessId && live.has(c.name))
-    .map((c) => c.name)
-    .sort((a, b) => a.localeCompare(b));
+    .map((c) => ({ name: c.name, ...(c.image ? { image: c.image } : {}) }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 /** Why a coupon can't be used for this subtotal, or the discount it gives. */

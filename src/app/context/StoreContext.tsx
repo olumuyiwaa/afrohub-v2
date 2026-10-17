@@ -14,6 +14,8 @@ interface StoreContextValue {
   store: PublicStore | null;
   products: Product[];
   categories: string[];
+  /** Cover picture per category name (only for categories that have one). */
+  categoryImages: Record<string, string>;
   status: "loading" | "ready" | "unavailable" | "error";
   /** Prefix a storefront path with this store's base URL, e.g. "/shop" -> "/s/adire-hub/shop". */
   href: (path: string) => string;
@@ -62,7 +64,7 @@ export function StoreProvider({ slug, children }: { slug?: string; children: Rea
   const dispatch = useDispatch<AppDispatch>();
   const [store, setStore] = useState<PublicStore | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categoryList, setCategoryList] = useState<{ name: string; image?: string }[]>([]);
   const [status, setStatus] = useState<StoreContextValue["status"]>("loading");
   const [nonce, setNonce] = useState(0);
 
@@ -77,7 +79,7 @@ export function StoreProvider({ slug, children }: { slug?: string; children: Rea
         if (cancelled) return;
         setStore(s);
         setProducts(rows.map(toTemplateProduct));
-        setCategories(cats);
+        setCategoryList(cats);
         setStatus("ready");
         dispatch(syncCartToStore(s.id));
       } catch (e) {
@@ -96,13 +98,14 @@ export function StoreProvider({ slug, children }: { slug?: string; children: Rea
     return {
       store,
       products,
-      categories,
+      categories: categoryList.map((c) => c.name),
+      categoryImages: Object.fromEntries(categoryList.filter((c) => c.image).map((c) => [c.name, c.image as string])),
       status,
       href: (path: string) => `${storeBase(slug)}${path === "/" ? "" : path}`,
       fmt: (n: number) => formatCurrency(n, store?.currency ?? "USD"),
       reload: () => setNonce((n) => n + 1),
     };
-  }, [slug, store, products, categories, status]);
+  }, [slug, store, products, categoryList, status]);
 
   if (!slug) return <>{children}</>;
 

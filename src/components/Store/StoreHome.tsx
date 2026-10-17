@@ -3,6 +3,7 @@ import React from "react";
 import Link from "next/link";
 import StoreProductCard from "./StoreProductCard";
 import ProductArt from "./ProductArt";
+import CategoryPicture from "./CategoryPicture";
 import ProductThumb from "@/components/Common/ProductThumb";
 import { useStore } from "@/app/context/StoreContext";
 import type { Product } from "@/types/product";
@@ -171,7 +172,7 @@ export default function StoreHome() {
                       className="group relative block aspect-[5/4] overflow-hidden rounded-2xl"
                     >
                       <div className="absolute inset-0 transition-transform duration-500 ease-out group-hover:scale-[1.05]">
-                        <ProductArt seed={c.name} color={c.color} showInitial={false} />
+                        <CategoryPicture name={c.name} />
                       </div>
                       <span className="absolute bottom-3 left-3 rounded-full bg-white px-4 py-1.5 text-custom-sm font-medium text-dark shadow-md">
                         {c.name} <span className="opacity-60">{c.count}</span>
