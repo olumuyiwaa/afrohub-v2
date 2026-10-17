@@ -9,6 +9,7 @@ import { ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import DataTable, { type Column } from "@/components/saas/DataTable";
 import StatusBadge from "@/components/saas/StatusBadge";
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
+import RowActions from "@/components/saas/RowActions";
 import { Modal } from "@/components/ui/modal";
 import { shortDate } from "@/lib/format";
 import type { Coupon } from "@/types/saas";
@@ -48,13 +49,14 @@ export default function CouponsPage() {
     {
       key: "actions", header: "", className: "text-right whitespace-nowrap",
       render: (c) => (
-        <div className="flex justify-end gap-4 text-theme-sm font-medium">
-          <button className="text-brand-500 hover:text-brand-600" onClick={() => { setFormError(null); setEditing(c); }}>Edit</button>
-          <button className="text-gray-600 hover:text-gray-800" onClick={() => run(() => setCouponStatus(bid, c.id, c.status === "active" ? "disabled" : "active"))}>
-            {c.status === "active" ? "Disable" : "Enable"}
-          </button>
-          <button className="text-error-600 hover:text-error-700" onClick={async () => { if (await confirm({ title: `Delete ${c.code}?`, message: "Customers will no longer be able to use this code.", confirmLabel: "Delete code", tone: "danger" })) run(() => deleteCoupon(bid, c.id)); }}>Delete</button>
-        </div>
+        <RowActions
+          label={`Actions for ${c.code}`}
+          actions={[
+            { label: "Edit", onClick: () => { setFormError(null); setEditing(c); } },
+            { label: c.status === "active" ? "Disable" : "Enable", onClick: () => run(() => setCouponStatus(bid, c.id, c.status === "active" ? "disabled" : "active")) },
+            { label: "Delete", tone: "danger", onClick: async () => { if (await confirm({ title: `Delete ${c.code}?`, message: "Customers will no longer be able to use this code.", confirmLabel: "Delete code", tone: "danger" })) run(() => deleteCoupon(bid, c.id)); } },
+          ]}
+        />
       ),
     },
   ];

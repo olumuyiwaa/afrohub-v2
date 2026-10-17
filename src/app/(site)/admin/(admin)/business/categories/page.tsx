@@ -7,6 +7,7 @@ import { Modal } from "@/components/ui/modal";
 import { createCategory, deleteCategory, listCategories, updateCategory, type CategoryWithCount } from "@/services/business";
 import { ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import DataTable, { type Column } from "@/components/saas/DataTable";
+import RowActions from "@/components/saas/RowActions";
 import { fileToDataUrl } from "@/lib/image";
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 
@@ -72,10 +73,13 @@ export default function CategoriesPage() {
     {
       key: "actions", header: "", className: "text-right whitespace-nowrap",
       render: (c) => (
-        <div className="flex justify-end gap-4 text-theme-sm font-medium">
-          <button className="text-brand-500 hover:text-brand-600" onClick={() => openEditor(c)}>Edit</button>
-          <button className="text-error-600 hover:text-error-700" onClick={() => remove(c)}>Delete</button>
-        </div>
+        <RowActions
+          label={`Actions for ${c.name}`}
+          actions={[
+            { label: "Edit", onClick: () => openEditor(c) },
+            { label: "Delete", tone: "danger", onClick: () => remove(c) },
+          ]}
+        />
       ),
     },
   ];

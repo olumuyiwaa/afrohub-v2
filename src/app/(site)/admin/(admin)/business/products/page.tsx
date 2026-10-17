@@ -11,6 +11,7 @@ import StatusBadge from "@/components/saas/StatusBadge";
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import { Modal } from "@/components/ui/modal";
 import { fileToDataUrl } from "@/lib/image";
+import RowActions from "@/components/saas/RowActions";
 import { specSuggestions } from "@/lib/specPresets";
 import type { Product, ProductStatus, ProductVariant } from "@/types/saas";
 
@@ -111,10 +112,13 @@ export default function ProductsPage() {
     {
       key: "actions", header: "", className: "text-right whitespace-nowrap",
       render: (p) => (
-        <div className="flex justify-end gap-3 text-theme-sm">
-          <button className="font-medium text-brand-500 hover:text-brand-600" onClick={() => open(p)}>Edit</button>
-          <button className="font-medium text-error-600 hover:text-error-700" onClick={() => remove(p)}>Delete</button>
-        </div>
+        <RowActions
+          label={`Actions for ${p.name}`}
+          actions={[
+            { label: "Edit", onClick: () => open(p) },
+            { label: "Delete", tone: "danger", onClick: () => remove(p) },
+          ]}
+        />
       ),
     },
   ];

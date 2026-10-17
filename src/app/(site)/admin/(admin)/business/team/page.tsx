@@ -8,6 +8,7 @@ import { ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import DataTable, { type Column } from "@/components/saas/DataTable";
 import StatusBadge from "@/components/saas/StatusBadge";
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
+import RowActions from "@/components/saas/RowActions";
 import { Modal } from "@/components/ui/modal";
 import { shortDate } from "@/lib/format";
 import type { TeamMember } from "@/types/saas";
@@ -52,7 +53,7 @@ export default function TeamPage() {
     {
       key: "actions", header: "", className: "text-right",
       render: (m) => m.role === "owner" ? null : (
-        <button className="text-theme-sm font-medium text-error-600 hover:text-error-700" onClick={() => remove(m)}>Remove</button>
+        <RowActions label={`Actions for ${m.name}`} actions={[{ label: "Remove from team", tone: "danger", onClick: () => remove(m) }]} />
       ),
     },
   ];
