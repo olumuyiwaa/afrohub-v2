@@ -1,0 +1,81 @@
+"use client";
+import React, { useMemo, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useStore } from "@/app/context/StoreContext";
+import AtelierCard from "./Card";
+
+type Sort = "featured" | "latest" | "price-asc" | "price-desc";
+const field = "h-11 rounded-md border bg-white/60 px-3 text-custom-sm text-dark outline-none focus:bg-white";
+
+export default function AtelierShop() {
+  const ctx = useStore();
+  const params = useSearchParams();
+  const [sort, setSort] = useState<Sort>("featured");
+  const [term, setTerm] = useState(params.get("q") ?? "");
+  const category = params.get("category") ?? "";
+  const q = term.trim().toLowerCase();
+
+  const list = useMemo(() => {
+    let l = ctx?.products ?? [];
+    if (category) l = l.filter((p) => p.category === category);
+    if (q) l = l.filter((p) => `${p.title} ${p.category ?? ""} ${p.description ?? ""}`.toLowerCase().includes(q));
+    const by = [...l];
+    if (sort === "featured") by.sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0) || +new Date(b.createdAt ?? 0) - +new Date(a.createdAt ?? 0));
+    if (sort === "latest") by.sort((a, b) => +new Date(b.createdAt ?? 0) - +new Date(a.createdAt ?? 0));
+    if (sort === "price-asc") by.sort((a, b) => a.discountedPrice - b.discountedPrice);
+    if (sort === "price-desc") by.sort((a, b) => b.discountedPrice - a.discountedPrice);
+    return by;
+  }, [ctx?.products, category, q, sort]);
+
+  if (!ctx?.store) return null;
+  const { store, categories, href } = ctx;
+  const tab = (on: boolean) => `whitespace-nowrap border-b-2 py-4 text-custom-sm ease-out duration-200 hover:text-dark ${on ? "border-[color:var(--ink)] font-medium text-dark" : "border-transparent"}`;
+  const line = { borderColor: "var(--line)" };
+
+  return (
+    <section>
+      <div className="mx-auto w-full max-w-[1260px] px-4 pb-8 pt-10 sm:px-8">
+        <nav aria-label="Breadcrumb" className="text-custom-sm">
+          <Link href={href("/")} className="hover:text-dark">Home</Link> / <span className="text-dark">{category || "Shop all"}</span>
+        </nav>
+        <h1 className="mt-4 text-4xl font-bold text-dark sm:text-5xl">{category || "Shop all"}</h1>
+        <p className="mt-3 max-w-[40rem] text-lg">{category ? `${store.name} · ${category}` : store.description || `Everything ${store.name} sells.`}</p>
+      </div>
+
+      <div className="border-y" style={line}>
+        <div className="mx-auto flex w-full max-w-[1260px] flex-wrap items-center gap-x-8 gap-y-3 px-4 sm:px-8">
+          <nav className="flex gap-6 overflow-x-auto" aria-label="Categories">
+            <Link href={href("/shop")} className={tab(!category)}>All</Link>
+            {categories.map((c) => (
+              <Link key={c} href={href(`/shop?category=${encodeURIComponent(c)}`)} className={tab(category === c)}>{c}</Link>
+            ))}
+          </nav>
+          <div className="ml-auto flex w-full gap-3 py-3 sm:w-auto">
+            <input value={term} onChange={(e) => setTerm(e.target.value)} placeholder="Search" aria-label="Search products" className={`${field} min-w-0 flex-1 sm:w-44`} style={line} />
+            <select value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="Sort products" className={field} style={line}>
+              <option value="featured">Featured</option>
+              <option value="latest">Newest</option>
+              <option value="price-asc">Price: low to high</option>
+              <option value="price-desc">Price: high to low</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="mx-auto w-full max-w-[1260px] px-4 pt-8 sm:px-8">
+        <p className="mb-6 text-custom-sm">{list.length} product{list.length === 1 ? "" : "s"}</p>
+        {list.length === 0 ? (
+          <div className="py-20 text-center">
+            <p className="font-medium text-dark">Nothing matches that.</p>
+            <Link href={href("/shop")} className="mt-3 inline-block underline underline-offset-4">Clear filters</Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4">
+            {list.map((p) => <AtelierCard key={p.id} item={p} />)}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}

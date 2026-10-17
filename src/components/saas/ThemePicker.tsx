@@ -5,7 +5,7 @@ import { updateBusinessProfile } from "@/services/business";
 import { ErrorNote } from "./Card";
 
 /** Mini wireframe of a theme, drawn from its swatches. */
-function Thumb({ swatches, layout }: { swatches: [string, string, string]; layout: "classic" | "showcase" }) {
+function Thumb({ swatches, layout }: { swatches: [string, string, string]; layout: "classic" | "showcase" | "atelier" }) {
   const [bg, surface, accent] = swatches;
   return (
     <div className="h-28 overflow-hidden rounded-lg border border-gray-200 p-2 dark:border-gray-700" style={{ background: bg }} aria-hidden>
@@ -14,7 +14,17 @@ function Thumb({ swatches, layout }: { swatches: [string, string, string]; layou
         <span className="h-1.5 w-8 rounded" style={{ background: accent, opacity: 0.35 }} />
         <span className="ml-auto h-1.5 w-6 rounded" style={{ background: accent }} />
       </div>
-      {layout === "showcase" ? (
+      {layout === "atelier" ? (
+        <div className="grid grid-cols-[1.2fr_1fr] gap-2 px-1 pt-1">
+          <div>
+            <div className="mb-1 h-1.5 w-1/3 rounded" style={{ background: accent, opacity: 0.6 }} />
+            <div className="mb-1 h-3 w-5/6 rounded" style={{ background: accent }} />
+            <div className="mb-2 h-1.5 w-2/3 rounded" style={{ background: accent, opacity: 0.3 }} />
+            <div className="h-3 w-1/3 rounded-sm" style={{ background: accent }} />
+          </div>
+          <div className="h-[58px] rounded-sm" style={{ background: surface }} />
+        </div>
+      ) : layout === "showcase" ? (
         <div className="flex gap-1.5">
           <div className="h-14 flex-1 rounded" style={{ background: surface }} />
           <div className="flex w-1/3 flex-col gap-1.5">
@@ -74,7 +84,7 @@ export default function ThemePicker({ businessId, current, onSaved }: { business
                 on ? "border-brand-500 ring-2 ring-brand-500/30" : "border-gray-200 hover:border-gray-300 dark:border-gray-800"
               }`}
             >
-              <Thumb swatches={t.swatches} layout={t.id === "showcase" ? "showcase" : "classic"} />
+              <Thumb swatches={t.swatches} layout={t.id === "showcase" ? "showcase" : t.id === "atelier" ? "atelier" : "classic"} />
               <div className="mt-3 flex items-center justify-between gap-2">
                 <span className="font-medium text-gray-800 dark:text-white/90">{t.name}</span>
                 {on && <span className="rounded-full bg-brand-50 px-2 py-0.5 text-theme-xs font-medium text-brand-600">{busy === t.id ? "Saving…" : "Active"}</span>}

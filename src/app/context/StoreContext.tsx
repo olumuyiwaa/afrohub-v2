@@ -7,6 +7,7 @@ import { getStoreBySlug, listStoreCategories, listStoreProducts, STORE_UNAVAILAB
 import { syncCartToStore } from "@/redux/features/cart-slice";
 import type { AppDispatch } from "@/redux/store";
 import { storePalette } from "@/lib/storeTheme";
+import { getTheme } from "@/themes/registry";
 import { formatCurrency } from "@/lib/money";
 
 interface StoreContextValue {
@@ -104,7 +105,7 @@ export function StoreProvider({ slug, children }: { slug?: string; children: Rea
 
   if (!slug) return <>{children}</>;
 
-  const pal = storePalette(store?.brandColor ?? "#3C50E0");
+  const pal = { ...storePalette(store?.brandColor ?? "#3C50E0"), ...getTheme(store?.theme).palette };
   return (
     <StoreContext.Provider value={value}>
       <div
