@@ -4,13 +4,14 @@ import { useState } from "react";
 import { useBizCurrency, useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
-import { createCategory, deleteProduct, listCategories, listProducts, MAX_PRODUCT_IMAGES, MAX_PRODUCT_SPECS, saveProduct, type ProductInput } from "@/services/business";
+import { createCategory, deleteProduct, getBusinessProfile, listCategories, listProducts, MAX_PRODUCT_IMAGES, MAX_PRODUCT_SPECS, saveProduct, type ProductInput } from "@/services/business";
 import { ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import DataTable, { type Column } from "@/components/saas/DataTable";
 import StatusBadge from "@/components/saas/StatusBadge";
 import { Field, inputCls, OutlineButton, PrimaryButton } from "@/components/saas/Form";
 import { Modal } from "@/components/ui/modal";
 import { fileToDataUrl } from "@/lib/image";
+import { specSuggestions } from "@/lib/specPresets";
 import type { Product, ProductStatus, ProductVariant } from "@/types/saas";
 
 type DraftVariant = { key: string; name: string; price: string; stock: string };
@@ -37,6 +38,7 @@ export default function ProductsPage() {
   const [drafts, setDrafts] = useState<DraftVariant[]>([]);
   const [addingCat, setAddingCat] = useState(false);
   const [specs, setSpecs] = useState<{ label: string; value: string }[]>([]);
+  const { data: profile } = useAsync(() => getBusinessProfile(bid), [bid]);
   const { data: cats, reload: reloadCats } = useAsync(() => listCategories(bid), [bid]);
 
   if (loading) return <PageLoading />;
@@ -289,6 +291,24 @@ export default function ProductsPage() {
                   + Add detail
                 </button>
               </div>
+              {(() => {
+                const free = specSuggestions(profile?.category).filter((n) => !specs.some((s) => s.label.trim().toLowerCase() === n.toLowerCase()));
+                return specs.length < MAX_PRODUCT_SPECS && free.length > 0 ? (
+                  <div className="mb-2 flex flex-wrap items-center gap-1.5" aria-label="Suggested details">
+                    <span className="text-theme-xs text-gray-500">Suggested:</span>
+                    {free.map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setSpecs((cur) => [...cur.filter((x) => x.label || x.value), { label: n, value: "" }])}
+                        className="rounded-full border border-gray-200 px-2.5 py-0.5 text-theme-xs text-gray-600 hover:border-brand-500 hover:text-brand-600 dark:border-gray-700 dark:text-gray-400"
+                      >
+                        + {n}
+                      </button>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
               {specs.length === 0 ? (
                 <p className="text-theme-xs text-gray-500">Optional facts shown on the product page, like Material: Cotton or Density: 150%.</p>
               ) : (
