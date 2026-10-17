@@ -13,8 +13,10 @@ export default function MarketingShell({ children }: { children: React.ReactNode
           <Link href="/"><Logo /></Link>
           <nav className="hidden items-center gap-8 text-sm font-medium text-gray-600 md:flex">
             <a href="/#features" className="hover:text-brand-500">Features</a>
+            <a href="/#themes" className="hover:text-brand-500">Themes</a>
             <a href="/#how" className="hover:text-brand-500">How it works</a>
             <a href="/#pricing" className="hover:text-brand-500">Pricing</a>
+            <a href="/#faq" className="hover:text-brand-500">FAQ</a>
           </nav>
           <div className="flex items-center gap-3 text-sm font-medium">
             <Link href="/admin/login" className="px-3 py-2 text-gray-600 hover:text-brand-500">Sign in</Link>
@@ -24,12 +26,33 @@ export default function MarketingShell({ children }: { children: React.ReactNode
       </header>
       {children}
       <footer className="border-t border-gray-100 bg-gray-50">
-        <div className={`${MARKETING_WIDTH} flex flex-col items-start justify-between gap-6 py-10 sm:flex-row sm:items-center`}>
+        <div className={`${MARKETING_WIDTH} grid gap-10 py-12 sm:grid-cols-[1.5fr_1fr_1fr]`}>
           <div>
             <Logo />
             <p className="mt-3 max-w-xs text-sm text-gray-500">The home for African small businesses online.</p>
           </div>
-          <p className="text-sm text-gray-400">© {new Date().getFullYear()} Retailr. All rights reserved.</p>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-800">Product</h2>
+            <ul className="mt-3 space-y-2 text-sm text-gray-500">
+              <li><a href="/#features" className="hover:text-brand-500">Features</a></li>
+              <li><a href="/#themes" className="hover:text-brand-500">Themes</a></li>
+              <li><a href="/#pricing" className="hover:text-brand-500">Pricing</a></li>
+              <li><a href="/#faq" className="hover:text-brand-500">FAQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-800">Get started</h2>
+            <ul className="mt-3 space-y-2 text-sm text-gray-500">
+              <li><Link href="/get-started" className="hover:text-brand-500">Start free trial</Link></li>
+              <li><Link href="/admin/login" className="hover:text-brand-500">Sign in</Link></li>
+              <li><Link href="/s/adire-hub" className="hover:text-brand-500">Demo store</Link></li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-gray-100">
+          <div className={`${MARKETING_WIDTH} py-5`}>
+            <p className="text-sm text-gray-400">© {new Date().getFullYear()} Retailr. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>
