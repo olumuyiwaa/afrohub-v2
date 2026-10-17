@@ -1,11 +1,12 @@
 "use client";
+
 import StoreGate from "@/components/Store/StoreGate";
-import StoreHome from "@/components/Store/StoreHome";
+import { ThemedPage } from "@/themes/ThemedPage";
 
 export default function StoreHomePage() {
   return (
     <StoreGate>
-      <StoreHome />
+      <ThemedPage page="home" />
     </StoreGate>
   );
 }

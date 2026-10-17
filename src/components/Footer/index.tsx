@@ -1,13 +1,13 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import StoreFooter from "./StoreFooter";
+import { ThemedChrome } from "@/themes/ThemedPage";
 import { useStore } from "@/app/context/StoreContext";
 
 const Footer = () => {
   const year = new Date().getFullYear();
   const storeCtx = useStore();
-  if (storeCtx) return <StoreFooter />; // business storefront
+  if (storeCtx) return <ThemedChrome slot="footer" />; // business storefront
 
   return (
     <footer className="overflow-hidden">

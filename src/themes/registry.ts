@@ -1,0 +1,15 @@
+import type { StoreTheme } from "./types";
+import classic from "./classic";
+import showcase from "./showcase";
+
+/**
+ * Every storefront theme. To add one:
+ *  1. create src/themes/<id>/index.ts exporting a StoreTheme (see classic/ and showcase/),
+ *  2. add it to this list.
+ * Pages, header or footer a theme doesn't provide fall back to the default theme.
+ */
+export const THEMES: StoreTheme[] = [classic, showcase];
+
+export const DEFAULT_THEME_ID = classic.id;
+
+export const getTheme = (id?: string | null): StoreTheme => THEMES.find((t) => t.id === id) ?? classic;

@@ -1,11 +1,12 @@
 "use client";
+
 import StoreGate from "@/components/Store/StoreGate";
-import StoreCart from "@/components/Store/StoreCart";
+import { ThemedPage } from "@/themes/ThemedPage";
 
 export default function StoreCartPage() {
   return (
     <StoreGate>
-      <StoreCart />
+      <ThemedPage page="cart" />
     </StoreGate>
   );
 }

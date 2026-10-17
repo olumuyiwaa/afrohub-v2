@@ -1,13 +1,13 @@
 "use client";
 import { Suspense } from "react";
 import StoreGate from "@/components/Store/StoreGate";
-import StoreShop from "@/components/Store/StoreShop";
+import { ThemedPage } from "@/themes/ThemedPage";
 
 export default function StoreShopPage() {
   return (
     <StoreGate>
       <Suspense fallback={null}>
-        <StoreShop />
+        <ThemedPage page="shop" />
       </Suspense>
     </StoreGate>
   );

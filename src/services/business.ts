@@ -551,7 +551,7 @@ export async function getBusinessProfile(businessId: string): Promise<Business> 
 
 export async function updateBusinessProfile(
   businessId: string,
-  patch: Partial<Pick<Business, "name" | "description" | "phone" | "country" | "city" | "brandColor" | "category" | "currency">> & {
+  patch: Partial<Pick<Business, "name" | "description" | "phone" | "country" | "city" | "brandColor" | "category" | "currency" | "theme">> & {
     /** data URL to set, null to remove, undefined to leave unchanged */
     logo?: string | null;
   }

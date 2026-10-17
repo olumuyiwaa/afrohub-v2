@@ -5,7 +5,7 @@ import { Bricolage_Grotesque } from "next/font/google";
 import "../css/euclid-circular-a-font.css";
 import "../css/style.css";
 import Header from "../../components/Header";
-import StoreHeader from "@/components/Store/StoreHeader";
+import { ThemedChrome } from "@/themes/ThemedPage";
 import Footer from "../../components/Footer";
 
 import { ModalProvider } from "../context/QuickViewModalContext";
@@ -58,7 +58,7 @@ export default function RootLayout({
               <CartModalProvider>
                 <ModalProvider>
                   <PreviewSliderProvider>
-                    {storeSlug ? <StoreHeader /> : <Header />}
+                    {storeSlug ? <ThemedChrome slot="header" fallback={<div className="h-[72px]" aria-hidden />} /> : <Header />}
                     {children}
                     <QuickViewModal />
                     <CartSidebarModal />

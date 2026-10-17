@@ -61,6 +61,8 @@ export interface Business {
   country: string;
   city: string;
   brandColor: string;
+  /** Storefront theme id (see src/themes). Missing means the default theme. */
+  theme?: string;
   /** Business logo as a (resized) data URL; shoppers see it in the storefront header and on invoices. */
   logo?: string;
   /** Currency the store sells in; product prices are entered in it. */
@@ -207,6 +209,7 @@ export interface PublicStore {
   city: string;
   country: string;
   brandColor: string;
+  theme?: string;
   logo?: string;
   currency: Currency;
 }
