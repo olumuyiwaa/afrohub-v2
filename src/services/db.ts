@@ -6,7 +6,7 @@
 import * as seed from "@/mock/seed";
 import type { AuthUser, Category } from "@/types/saas";
 
-const STORAGE_KEY = "retailr:db:v1";
+const STORAGE_KEY = "retailr:db:v2";
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 
 /** One category per distinct product category a business already uses (seed data and older saved data predate managed categories). */

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8efe6"/><stop offset="1" stop-color="#F3E3D3"/></linearGradient><pattern id="p" width="36" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(20)"><rect width="36" height="36" fill="none"/><circle cx="9" cy="9" r="4" fill="#F7E7C6" opacity=".55"/><rect x="22" y="22" width="9" height="9" rx="2" fill="#F7E7C6" opacity=".35"/></pattern></defs>
+<rect width="800" height="1000" fill="url(#g)"/>
+<circle cx="640" cy="170" r="150" fill="#f9f2eb" opacity=".55"/>
+<rect y="840" width="800" height="160" fill="#e4d5c6"/>
+<ellipse cx="400" cy="840" rx="250" ry="26" fill="#000" opacity=".09"/>
+<g transform="translate(0 0) scale(1)"><path d="M190 260 Q400 220 610 260 Q650 530 610 800 Q400 840 190 800 Q150 530 190 260Z" fill="#C8643B"/><path d="M190 260 Q400 220 610 260 Q650 530 610 800 Q400 840 190 800 Q150 530 190 260Z" fill="url(#p)"/><path d="M260 330 L540 730 M540 330 L260 730" stroke="#F7E7C6" stroke-width="10" opacity=".7"/></g>
+</svg>

@@ -60,7 +60,7 @@ Go to `/admin/login` and pick an account (password for all: `demo1234`).
 
 Try a storefront at `/s/adire-hub` or `/s/kente-co`. Coupon codes to try at checkout: `WELCOME10`, `SAVE5` (minimum $50).
 
-Demo data lives in your browser's localStorage (`retailr:db:v1`). The login page has a reset option, or clear site data to start fresh.
+Demo data lives in your browser's localStorage (`retailr:db:v2`). The login page has a reset option, or clear site data to start fresh.
 
 ## Project structure
 

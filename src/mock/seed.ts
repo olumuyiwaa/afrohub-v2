@@ -205,6 +205,7 @@ export const businesses: Business[] = bizSeeds.map((b, i) => {
     id: `biz_${pad(i + 1, 2)}`,
     name: b.name,
     slug: slugify(b.name),
+    logo: `/demo/logos/${slugify(b.name)}.svg`,
     category: b.category,
     ownerName: b.owner,
     ownerEmail: `${firstName(b.owner)}@${emailDomain(b.name)}`,
@@ -253,6 +254,10 @@ const catalogue: Record<string, { names: string[]; price: [number, number] }> = 
   },
 };
 
+/** Demo pictures live in public/demo (made by scripts/generate-demo-images.py). */
+const pictureSlug = (name: string) => name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+const productPictures = (name: string) => [1, 2].map((n) => `/demo/products/${pictureSlug(name)}-${n}.svg`);
+
 const IMAGE_COLORS = ["#c3ceff", "#ffd9a8", "#b7ebd0", "#fecdca", "#d9d6fe", "#b2e9f5", "#fcc9e6", "#fedf89"];
 
 export const products: Product[] = [];
@@ -296,6 +301,8 @@ businesses.forEach((biz, idx) => {
       status,
       sold: 0,
       imageColor: IMAGE_COLORS[(p + idx) % IMAGE_COLORS.length],
+      images: productPictures(name),
+      image: productPictures(name)[0],
       createdAt: daysAgo(int(1, joinedDays)),
     });
   }

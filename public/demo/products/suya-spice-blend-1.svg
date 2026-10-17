@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" role="img">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8efe6"/><stop offset="1" stop-color="#F3E3D3"/></linearGradient><pattern id="p" width="36" height="36" patternUnits="userSpaceOnUse" patternTransform="rotate(20)"><rect width="36" height="36" fill="none"/><circle cx="9" cy="9" r="4" fill="#F7E7C6" opacity=".55"/><rect x="22" y="22" width="9" height="9" rx="2" fill="#F7E7C6" opacity=".35"/></pattern></defs>
+<rect width="800" height="1000" fill="url(#g)"/>
+<circle cx="640" cy="170" r="150" fill="#f9f2eb" opacity=".55"/>
+<rect y="840" width="800" height="160" fill="#e4d5c6"/>
+<ellipse cx="400" cy="840" rx="250" ry="26" fill="#000" opacity=".09"/>
+<g transform="translate(0 0) scale(1)"><rect x="260" y="270" width="280" height="90" rx="26" fill="#964b2c"/><rect x="235" y="350" width="330" height="440" rx="46" fill="#C8643B"/><rect x="275" y="470" width="250" height="210" rx="18" fill="#F7E7C6"/><circle cx="400" cy="575" r="46" fill="#C8643B" opacity=".85"/></g>
+</svg>
