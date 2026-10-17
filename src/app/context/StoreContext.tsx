@@ -3,7 +3,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { useDispatch } from "react-redux";
 import type { Product as StoreProductRow, PublicStore } from "@/types/saas";
 import type { Product } from "@/types/product";
-import { getStoreBySlug, listStoreProducts, STORE_UNAVAILABLE } from "@/services/store";
+import { getStoreBySlug, listStoreCategories, listStoreProducts, STORE_UNAVAILABLE } from "@/services/store";
 import { syncCartToStore } from "@/redux/features/cart-slice";
 import type { AppDispatch } from "@/redux/store";
 import { storePalette } from "@/lib/storeTheme";
@@ -60,6 +60,7 @@ export function StoreProvider({ slug, children }: { slug?: string; children: Rea
   const dispatch = useDispatch<AppDispatch>();
   const [store, setStore] = useState<PublicStore | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [status, setStatus] = useState<StoreContextValue["status"]>("loading");
   const [nonce, setNonce] = useState(0);
 
@@ -70,10 +71,11 @@ export function StoreProvider({ slug, children }: { slug?: string; children: Rea
     (async () => {
       try {
         const s = await getStoreBySlug(slug);
-        const rows = await listStoreProducts(s.id);
+        const [rows, cats] = await Promise.all([listStoreProducts(s.id), listStoreCategories(s.id)]);
         if (cancelled) return;
         setStore(s);
         setProducts(rows.map(toTemplateProduct));
+        setCategories(cats);
         setStatus("ready");
         dispatch(syncCartToStore(s.id));
       } catch (e) {
@@ -92,13 +94,13 @@ export function StoreProvider({ slug, children }: { slug?: string; children: Rea
     return {
       store,
       products,
-      categories: Array.from(new Set(products.map((p) => p.category).filter(Boolean) as string[])).sort(),
+      categories,
       status,
       href: (path: string) => `${storeBase(slug)}${path === "/" ? "" : path}`,
       fmt: (n: number) => formatCurrency(n, store?.currency ?? "USD"),
       reload: () => setNonce((n) => n + 1),
     };
-  }, [slug, store, products, status]);
+  }, [slug, store, products, categories, status]);
 
   if (!slug) return <>{children}</>;
 

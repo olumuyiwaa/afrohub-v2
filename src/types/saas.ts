@@ -74,6 +74,14 @@ export interface Business {
   stats: BusinessStats;
 }
 
+/** A product category the business manages itself; products point at it by name. */
+export interface Category {
+  id: string;
+  businessId: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface Subscription {
   id: string;
   businessId: string;

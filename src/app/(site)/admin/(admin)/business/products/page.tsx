@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBizCurrency, useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
-import { deleteProduct, listProducts, MAX_PRODUCT_IMAGES, saveProduct, type ProductInput } from "@/services/business";
+import { createCategory, deleteProduct, listCategories, listProducts, MAX_PRODUCT_IMAGES, saveProduct, type ProductInput } from "@/services/business";
 import { ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import DataTable, { type Column } from "@/components/saas/DataTable";
 import StatusBadge from "@/components/saas/StatusBadge";
@@ -35,12 +35,15 @@ export default function ProductsPage() {
   const [rowError, setRowError] = useState<string | null>(null);
   const [images, setImages] = useState<string[]>([]);
   const [drafts, setDrafts] = useState<DraftVariant[]>([]);
+  const [addingCat, setAddingCat] = useState(false);
+  const { data: cats, reload: reloadCats } = useAsync(() => listCategories(bid), [bid]);
 
   if (loading) return <PageLoading />;
   if (error || !data) return <ErrorNote message={error ?? "Could not load products."} onRetry={reload} />;
 
   const open = (p: Product | "new") => {
     setFormError(null);
+    setAddingCat(false);
     setImages(p !== "new" ? (p.images?.length ? p.images : p.image ? [p.image] : []) : []);
     setDrafts(p !== "new" ? (p.variants ?? []).map(toDraft) : []);
     setEditing(p);
@@ -115,10 +118,12 @@ export default function ProductsPage() {
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
+    const category = addingCat ? String(f.get("newCategory") ?? "").trim() : String(f.get("category") ?? "");
+    if (addingCat && !category) return setFormError("Enter a name for the new category, or pick an existing one.");
     const input: ProductInput = {
       name: String(f.get("name")).trim(),
       sku: String(f.get("sku")).trim(),
-      category: String(f.get("category")).trim(),
+      category: category,
       description: String(f.get("description")).trim(),
       price: Number(f.get("price")),
       stock: Number(f.get("stock")),
@@ -140,6 +145,14 @@ export default function ProductsPage() {
     setSaving(true);
     setFormError(null);
     try {
+      if (addingCat) {
+        try {
+          await createCategory(bid, category);
+        } catch (err) {
+          if (!(err instanceof Error && err.message.startsWith("You already have"))) throw err;
+        }
+        reloadCats();
+      }
       await saveProduct(bid, input, editing !== "new" && editing ? editing.id : undefined);
       setEditing(null);
       reload();
@@ -182,7 +195,22 @@ export default function ProductsPage() {
             <Field label="Name"><input name="name" defaultValue={p?.name} className={inputCls} placeholder="e.g. Adire Wrap Dress" /></Field>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field label="SKU"><input name="sku" defaultValue={p?.sku} className={inputCls} /></Field>
-              <Field label="Category"><input name="category" defaultValue={p?.category ?? ""} className={inputCls} /></Field>
+              <Field label="Category">
+                <div className="space-y-2">
+                  <select
+                    name="category"
+                    defaultValue={p?.category ?? ""}
+                    onChange={(e) => setAddingCat(e.target.value === "__new__")}
+                    className={inputCls}
+                  >
+                    <option value="">No category</option>
+                    {(cats ?? []).map((c) => <option key={c.id} value={c.name}>{c.name}</option>)}
+                    {p?.category && !(cats ?? []).some((c) => c.name === p.category) && <option value={p.category}>{p.category}</option>}
+                    <option value="__new__">+ New category…</option>
+                  </select>
+                  {addingCat && <input name="newCategory" autoFocus maxLength={40} placeholder="New category name" aria-label="New category name" className={inputCls} />}
+                </div>
+              </Field>
               <Field label={`Price (${currency})`}><input name="price" type="number" step="0.01" min="0" defaultValue={p?.price ?? ""} className={inputCls} /></Field>
               <Field label={drafts.length ? "Stock (total of variants)" : "Stock"}>
 {drafts.length ? (

@@ -4,10 +4,24 @@
 // When the real backend exists, delete this file and point the services at it.
 
 import * as seed from "@/mock/seed";
-import type { AuthUser } from "@/types/saas";
+import type { AuthUser, Category } from "@/types/saas";
 
 const STORAGE_KEY = "retailr:db:v1";
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
+
+/** One category per distinct product category a business already uses (seed data and older saved data predate managed categories). */
+function deriveCategories(products: { businessId: string; category: string }[]): Category[] {
+  const seen = new Set<string>();
+  const out: Category[] = [];
+  for (const p of products) {
+    const name = (p.category ?? "").trim();
+    const key = `${p.businessId}|${name.toLowerCase()}`;
+    if (!name || seen.has(key)) continue;
+    seen.add(key);
+    out.push({ id: `cat_${out.length + 1}_${Math.random().toString(36).slice(2, 7)}`, businessId: p.businessId, name, createdAt: new Date(0).toISOString() });
+  }
+  return out.sort((a, b) => a.name.localeCompare(b.name));
+}
 
 const fresh = () => ({
   plans: clone(seed.plans),
@@ -15,6 +29,7 @@ const fresh = () => ({
   subscriptions: clone(seed.subscriptions),
   invoices: clone(seed.invoices),
   products: clone(seed.products),
+  categories: deriveCategories(seed.products),
   orders: clone(seed.orders),
   customers: clone(seed.customers),
   coupons: clone(seed.coupons),
@@ -34,6 +49,7 @@ function load(): DB {
       const parsed = JSON.parse(raw);
       // basic shape check so a corrupted/old blob falls back to seed data
       if (parsed && Array.isArray(parsed.businesses) && Array.isArray(parsed.plans) && Array.isArray(parsed.users) && Array.isArray(parsed.coupons) && Array.isArray(parsed.customerGroups) && Array.isArray(parsed.messages)) {
+        if (!Array.isArray(parsed.categories)) parsed.categories = deriveCategories(parsed.products ?? []);
         return parsed as DB;
       }
     }

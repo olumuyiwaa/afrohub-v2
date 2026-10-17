@@ -1,6 +1,6 @@
 // Business admin (tenant) services. Every call is scoped by businessId, which
 // is exactly how the real API will authorise requests.
-import type {
+import type { Category,
   Audience,
   Business,
   CustomerGroup,
@@ -102,6 +102,62 @@ export async function listProducts(businessId: string): Promise<Product[]> {
   return db.products.filter((p) => p.businessId === businessId);
 }
 
+// ---------- categories ----------
+
+export type CategoryWithCount = Category & { productCount: number };
+
+const cleanCategoryName = (raw: string): string => {
+  const name = raw.replace(/\s+/g, " ").trim();
+  if (!name) throw new ServiceError("Enter a category name.");
+  if (name.length > 40) throw new ServiceError("Keep category names under 40 characters.");
+  return name;
+};
+
+export async function listCategories(businessId: string): Promise<CategoryWithCount[]> {
+  await delay(200);
+  return db.categories
+    .filter((c) => c.businessId === businessId)
+    .map((c) => ({ ...c, productCount: db.products.filter((p) => p.businessId === businessId && p.category === c.name).length }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function createCategory(businessId: string, rawName: string): Promise<Category> {
+  await delay(250);
+  const name = cleanCategoryName(rawName);
+  if (db.categories.some((c) => c.businessId === businessId && c.name.toLowerCase() === name.toLowerCase())) {
+    throw new ServiceError(`You already have a category called "${name}".`);
+  }
+  const cat: Category = { id: uid("cat"), businessId, name, createdAt: new Date().toISOString() };
+  db.categories.push(cat);
+  return { ...cat };
+}
+
+/** Renaming also moves the category's products to the new name. */
+export async function renameCategory(businessId: string, id: string, rawName: string): Promise<Category> {
+  await delay(300);
+  const cat = db.categories.find((c) => c.id === id && c.businessId === businessId);
+  if (!cat) throw new ServiceError("Category not found.");
+  const name = cleanCategoryName(rawName);
+  if (db.categories.some((c) => c.id !== id && c.businessId === businessId && c.name.toLowerCase() === name.toLowerCase())) {
+    throw new ServiceError(`You already have a category called "${name}".`);
+  }
+  for (const p of db.products) if (p.businessId === businessId && p.category === cat.name) p.category = name;
+  cat.name = name;
+  return { ...cat };
+}
+
+/** Products in a deleted category stay on sale, just uncategorised. */
+export async function deleteCategory(businessId: string, id: string): Promise<{ uncategorised: number }> {
+  await delay(300);
+  const i = db.categories.findIndex((c) => c.id === id && c.businessId === businessId);
+  if (i === -1) throw new ServiceError("Category not found.");
+  const name = db.categories[i].name;
+  let n = 0;
+  for (const p of db.products) if (p.businessId === businessId && p.category === name) { p.category = ""; n++; }
+  db.categories.splice(i, 1);
+  return { uncategorised: n };
+}
+
 export const MAX_PRODUCT_IMAGES = 6;
 
 export type ProductInput = Pick<Product, "name" | "sku" | "category" | "description" | "price" | "stock" | "status"> & {
@@ -136,6 +192,13 @@ export async function saveProduct(
   const images = rawImages?.filter(Boolean);
   if (variants) fields.stock = variants.reduce((s, v) => s + v.stock, 0);
   input = fields as ProductInput;
+  if (input.category?.trim()) {
+    const cat = db.categories.find((c) => c.businessId === businessId && c.name.toLowerCase() === input.category.trim().toLowerCase());
+    if (!cat) throw new ServiceError(`"${input.category.trim()}" isn't one of your categories. Add it under Categories first.`);
+    input.category = cat.name;
+  } else {
+    input.category = "";
+  }
   if (id) {
     const p = db.products.find((x) => x.id === id && x.businessId === businessId);
     if (!p) throw new ServiceError("Product not found.");
