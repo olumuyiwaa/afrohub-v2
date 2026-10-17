@@ -79,6 +79,7 @@ export default function AtelierProduct({ productId }: { productId: string }) {
 
   const step = "flex h-12 w-11 items-center justify-center text-lg text-dark disabled:opacity-35";
   const details: [string, string][] = [
+    ...(product.specs ?? []).map((s): [string, string] => [s.label, s.value]),
     ...(product.category ? ([["Category", product.category]] as [string, string][]) : []),
     ...(product.sku ? ([["SKU", product.sku]] as [string, string][]) : []),
     ["Ships from", `${store.city}, ${store.country}`],

@@ -53,6 +53,7 @@ export const toTemplateProduct = (p: StoreProductRow): Product => ({
   })(),
   variants: p.variants?.length ? p.variants.map((v) => ({ ...v })) : undefined,
   sku: p.sku,
+  specs: p.specs?.length ? p.specs.map((s) => ({ ...s })) : undefined,
   createdAt: p.createdAt,
   sold: p.sold,
 });

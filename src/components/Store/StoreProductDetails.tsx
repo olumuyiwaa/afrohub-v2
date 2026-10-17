@@ -177,6 +177,7 @@ export default function StoreProductDetails({ productId }: { productId: string }
 
             <dl className="mt-10 divide-y border-y text-custom-sm" style={{ borderColor: "var(--line)" }}>
               {[
+                ...(product.specs ?? []).map((s): [string, string] => [s.label, s.value]),
                 ["Payment", "Cash on delivery or bank transfer"],
                 ["Ships from", `${store.city}, ${store.country}`],
                 ...(product.category ? [["Category", product.category]] : []),

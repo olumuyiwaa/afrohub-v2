@@ -159,11 +159,26 @@ export async function deleteCategory(businessId: string, id: string): Promise<{ 
 }
 
 export const MAX_PRODUCT_IMAGES = 6;
+export const MAX_PRODUCT_SPECS = 10;
+
+function cleanSpecs(input?: Product["specs"]): Product["specs"] {
+  if (!input) return undefined;
+  const rows = input.map((s) => ({ label: s.label.trim(), value: s.value.trim() })).filter((s) => s.label || s.value);
+  if (rows.length > MAX_PRODUCT_SPECS) throw new ServiceError(`A product can have up to ${MAX_PRODUCT_SPECS} details.`);
+  for (const r of rows) {
+    if (!r.label || !r.value) throw new ServiceError("Each product detail needs both a name and a value.");
+    if (r.label.length > 30) throw new ServiceError("Keep detail names under 30 characters.");
+    if (r.value.length > 120) throw new ServiceError("Keep detail values under 120 characters.");
+  }
+  return rows;
+}
 
 export type ProductInput = Pick<Product, "name" | "sku" | "category" | "description" | "price" | "stock" | "status"> & {
   /** Photos as data URLs, cover first. Omit to leave unchanged; [] removes all. */
   images?: string[];
   variants?: Product["variants"];
+  /** Product details shown on the storefront. Omit to leave unchanged; [] removes all. */
+  specs?: Product["specs"];
 };
 
 function cleanVariants(input?: Product["variants"]): Product["variants"] {
@@ -186,7 +201,8 @@ export async function saveProduct(
   id?: string
 ): Promise<Product> {
   await delay(400);
-  const { images: rawImages, variants: rawVariants, ...fields } = input;
+  const { images: rawImages, variants: rawVariants, specs: rawSpecs, ...fields } = input;
+  const specs = cleanSpecs(rawSpecs);
   const variants = cleanVariants(rawVariants);
   if (rawImages && rawImages.length > MAX_PRODUCT_IMAGES) throw new ServiceError(`A product can have up to ${MAX_PRODUCT_IMAGES} photos.`);
   const images = rawImages?.filter(Boolean);
@@ -206,6 +222,7 @@ export async function saveProduct(
       status: input.stock === 0 && input.status === "active" ? "out_of_stock" : input.status,
     });
     p.variants = variants;
+    if (specs) p.specs = specs.length ? specs : undefined;
     if (images) {
       p.images = images.length ? images : undefined;
       p.image = images[0];
@@ -228,6 +245,7 @@ export async function saveProduct(
     createdAt: new Date().toISOString(),
     ...(images?.length ? { images, image: images[0] } : {}),
     ...(variants ? { variants } : {}),
+    ...(specs?.length ? { specs } : {}),
     status: input.stock === 0 && input.status === "active" ? "out_of_stock" : input.status,
   };
   db.products.unshift(product);

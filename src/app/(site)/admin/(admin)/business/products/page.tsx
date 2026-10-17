@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBizCurrency, useBizMoney } from "@/hooks/useBizMoney";
 import { useAuth } from "@/app/context/AuthContext";
 import { useAsync } from "@/hooks/useAsync";
-import { createCategory, deleteProduct, listCategories, listProducts, MAX_PRODUCT_IMAGES, saveProduct, type ProductInput } from "@/services/business";
+import { createCategory, deleteProduct, listCategories, listProducts, MAX_PRODUCT_IMAGES, MAX_PRODUCT_SPECS, saveProduct, type ProductInput } from "@/services/business";
 import { ErrorNote, PageHeader, PageLoading } from "@/components/saas/Card";
 import DataTable, { type Column } from "@/components/saas/DataTable";
 import StatusBadge from "@/components/saas/StatusBadge";
@@ -36,6 +36,7 @@ export default function ProductsPage() {
   const [images, setImages] = useState<string[]>([]);
   const [drafts, setDrafts] = useState<DraftVariant[]>([]);
   const [addingCat, setAddingCat] = useState(false);
+  const [specs, setSpecs] = useState<{ label: string; value: string }[]>([]);
   const { data: cats, reload: reloadCats } = useAsync(() => listCategories(bid), [bid]);
 
   if (loading) return <PageLoading />;
@@ -44,6 +45,7 @@ export default function ProductsPage() {
   const open = (p: Product | "new") => {
     setFormError(null);
     setAddingCat(false);
+    setSpecs(p !== "new" ? (p.specs ?? []).map((s) => ({ ...s })) : []);
     setImages(p !== "new" ? (p.images?.length ? p.images : p.image ? [p.image] : []) : []);
     setDrafts(p !== "new" ? (p.variants ?? []).map(toDraft) : []);
     setEditing(p);
@@ -129,6 +131,7 @@ export default function ProductsPage() {
       stock: Number(f.get("stock")),
       status: f.get("status") as ProductStatus,
       images,
+      specs,
     };
     if (drafts.length) {
       input.variants = drafts.map((d) => ({
@@ -271,6 +274,32 @@ export default function ProductsPage() {
                     </li>
                   ))}
                   <li className="text-theme-xs text-gray-500">Leave price empty to use the product price.</li>
+                </ul>
+              )}
+            </div>
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-400">Details <span className="font-normal text-gray-400">(material, size guide…)</span></span>
+                <button
+                  type="button"
+                  disabled={specs.length >= MAX_PRODUCT_SPECS}
+                  onClick={() => setSpecs((s) => [...s, { label: "", value: "" }])}
+                  className="text-sm font-medium text-brand-500 hover:text-brand-600 disabled:opacity-40"
+                >
+                  + Add detail
+                </button>
+              </div>
+              {specs.length === 0 ? (
+                <p className="text-theme-xs text-gray-500">Optional facts shown on the product page, like Material: Cotton or Density: 150%.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {specs.map((s, i) => (
+                    <li key={i} className="grid grid-cols-[1fr_1.6fr_auto] items-center gap-2">
+                      <input aria-label="Detail name" placeholder="Name" maxLength={30} value={s.label} onChange={(e) => setSpecs((cur) => cur.map((x, k) => (k === i ? { ...x, label: e.target.value } : x)))} className={inputCls} />
+                      <input aria-label="Detail value" placeholder="Value" maxLength={120} value={s.value} onChange={(e) => setSpecs((cur) => cur.map((x, k) => (k === i ? { ...x, value: e.target.value } : x)))} className={inputCls} />
+                      <button type="button" aria-label="Remove detail" onClick={() => setSpecs((cur) => cur.filter((_, k) => k !== i))} className="px-1 text-error-600">✕</button>
+                    </li>
+                  ))}
                 </ul>
               )}
             </div>

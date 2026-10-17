@@ -3,8 +3,9 @@ import type { StoreTheme } from "../types";
 /**
  * Atelier: warm, editorial boutique look (cream paper, deep brown ink, big
  * photography, tidy portrait cards). Built for fashion, hair, beauty and
- * jewellery stores that lead with photos. Cart, checkout and order pages
- * use the default theme, restyled by this theme's palette.
+ * jewellery stores that lead with photos. Checkout, order and invoice pages
+ * use the default theme, restyled by this theme's palette (one shared
+ * checkout keeps payment logic in a single place).
  */
 const atelier: StoreTheme = {
   id: "atelier",
@@ -18,6 +19,7 @@ const atelier: StoreTheme = {
     home: () => import("./Home"),
     shop: () => import("./Shop"),
     product: () => import("./Product"),
+    cart: () => import("./Cart"),
   },
 };
 export default atelier;

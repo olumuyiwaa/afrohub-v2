@@ -75,6 +75,11 @@ export interface Business {
 }
 
 /** A product category the business manages itself; products point at it by name. */
+export interface ProductSpec {
+  label: string;
+  value: string;
+}
+
 export interface Category {
   id: string;
   businessId: string;
@@ -137,6 +142,8 @@ export interface Product {
   images?: string[];
   /** When present, product.stock is the sum of the variants' stock. */
   variants?: ProductVariant[];
+  /** Extra details the business wants shown on the product page (e.g. Material: Cotton). */
+  specs?: ProductSpec[];
   createdAt: string;
 }
 

@@ -16,7 +16,7 @@ export function priceLabel(p: Product, fmt: (n: number) => string) {
   return Math.max(...prices) !== lo ? { from: true, text: fmt(lo) } : { from: false, text: fmt(lo) };
 }
 
-export function Photo({ item, className = "" }: { item?: Product; className?: string }) {
+export function Photo({ item, className = "" }: { item?: Pick<Product, "title" | "imgs" | "color">; className?: string }) {
   const src = item?.imgs?.previews?.[0];
   return (
     <div className={`relative overflow-hidden bg-[color:var(--tint)] ${className}`}>
